@@ -1,17 +1,57 @@
 package org.example;
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
-public class Main {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+
+import org.example.controler.TelegramBot;
+import org.telegram.telegrambots.meta.TelegramBotsApi;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+
+import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
+
+/**
+ * Main главный класс приложения для запуска Telegram бота
+ */
+public class Main {
+    /**
+     * Точка входа в приложение запускает Telegram бота с полученными учетными данными
+     */
+    public static void main(String[] args) {
+        try {
+
+            TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
+
+            String botToken = getBotToken(args);
+            String botUsername = getBotUsername(args);
+
+            botsApi.registerBot(new TelegramBot(botUsername, botToken));
+
+            System.out.println("Bot успешно запущен!");
+
+
+        } catch (TelegramApiException e) {
+            System.err.println("Ошибка при запуске бота: " + e.getMessage());
         }
+    }
+
+    /**
+     *Возвращает токен бота из аргументов командной строки или системных свойств
+     */
+    private static String getBotToken(String[] args) {
+        if (args.length > 0) {
+            return args[0];
+        }
+
+        return System.getProperty("BOT_TOKEN", "token");
+    }
+
+    /**
+     *Возвращает имя бота из аргументов командной строки или системных свойств
+     */
+    private static String getBotUsername(String[] args) {
+        if (args.length > 1) {
+            return args[1];
+        }
+
+        return System.getProperty("BOT_USERNAME", "name");
     }
 }
