@@ -12,20 +12,19 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
  * Main главный класс приложения для запуска Telegram бота
  */
 public class Main {
-    /**
-     * Точка входа в приложение запускает Telegram бота с полученными учетными данными
-     */
     public static void main(String[] args) {
         try {
 
             TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
 
+
             String botToken = getBotToken(args);
             String botUsername = getBotUsername(args);
 
+
             botsApi.registerBot(new TelegramBot(botUsername, botToken));
 
-            System.out.println("Bot успешно запущен!");
+            System.out.println("EchoBot успешно запущен!");
 
 
         } catch (TelegramApiException e) {
@@ -33,9 +32,6 @@ public class Main {
         }
     }
 
-    /**
-     *Возвращает токен бота из аргументов командной строки или системных свойств
-     */
     private static String getBotToken(String[] args) {
         if (args.length > 0) {
             return args[0];
@@ -44,14 +40,11 @@ public class Main {
         return System.getProperty("BOT_TOKEN", "token");
     }
 
-    /**
-     *Возвращает имя бота из аргументов командной строки или системных свойств
-     */
     private static String getBotUsername(String[] args) {
         if (args.length > 1) {
             return args[1];
         }
 
-        return System.getProperty("BOT_USERNAME", "name");
+        return System.getProperty("BOT_USERNAME", "username");
     }
 }
