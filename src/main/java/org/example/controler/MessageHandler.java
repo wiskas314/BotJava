@@ -1,29 +1,31 @@
 package org.example.controler;
 
 
+import org.apache.commons.lang3.StringUtils;
+
+/**
+ * класс для обрабатывания входящих сообщений и генерации ответа
+ */
 public class MessageHandler {
     /**
      * обрабатывает текст входящего сообщения и возвращает текстовый ответ.
      */
-    public String handleUpdate(String message, String userName) {
-        if (!message.equals("")) {
-            if (message.equals("/start")) {
-                return startMessage(userName);
-            } else if (message.equals("/help")) {
-                return helpMessage();
-            } else {
-                return echoMessage(message);
+    public String handleMessage(String message, String userName) {
+        if (StringUtils.isNotEmpty(message)) {
+            switch (message) {
+                case "/start":
+                    return startMessage(userName);
+                case "/help":
+                    return """
+                Вот список доступных команд:
+                /start - Начать общение с ботом
+                /help - Получить список команд""";
+                default:
+                    return echoMessage(message);
             }
         } else {
-            return ErrMessage();
+            return "Ошибка обработки входных данных, проверьте что вы ввели текст!";
         }
-    }
-
-    /**
-     * Сообщение, которое отправится при ошибке обработки исходного сообщения
-     */
-    private String ErrMessage() {
-        return "Ошибка обработки входных данных, проверьте что вы ввели текст!";
     }
     /**
      * Генерируется эхо-сообщение пользователю
@@ -38,14 +40,4 @@ public class MessageHandler {
         return "Привет, " + userName + "! Я бот, готовый помогать.\nЧтобы узнать, что я умею, введи /help";
     }
 
-    /**
-     * формирует справочное сообщение для команды /help
-     * содержит список всех доступных команд с их описанием
-     */
-    private String helpMessage() {
-        return """
-                Вот список доступных команд:
-                /start - Начать общение с ботом
-                /help - Получить список команд""";
-    }
 }
