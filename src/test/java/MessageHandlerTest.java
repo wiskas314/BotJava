@@ -20,7 +20,7 @@ class MessageHandlerTest {
         String message = "TEST";
         String username = "Bob";
 
-        String result = messageHandler.handleUpdate(message, username);
+        String result = messageHandler.handleMessage(message, username);
 
         assertEquals("Вы написали: TEST", result);
     }
