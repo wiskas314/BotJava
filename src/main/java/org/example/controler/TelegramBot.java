@@ -3,6 +3,7 @@ package org.example.controler;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -15,6 +16,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final MessageHandler messageHandler;
 
     public TelegramBot(String botUsername, String botToken) {
+        super(botToken);
         this.botUsername = botUsername;
         this.botToken = botToken;
         this.messageHandler = new MessageHandler();
@@ -22,11 +24,12 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        long chatId = update.getMessage().getChatId();
+        Message userMessage = update.getMessage();
+        long chatId = userMessage.getChatId();
         String userName = getUsername(update);
-        String userMessage = getMessage(update);
+        String text= userMessage.getText();
 
-        String responseText = messageHandler.handleMessage(userMessage, userName);
+        String responseText = messageHandler.handleMessage(text, userName);
 
         SendMessage message = new SendMessage();
         message.setChatId(String.valueOf(chatId));
