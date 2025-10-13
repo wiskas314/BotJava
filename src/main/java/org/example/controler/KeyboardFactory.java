@@ -49,12 +49,12 @@ public class KeyboardFactory {
         InlineKeyboardButton Red = new InlineKeyboardButton();
 
         Red.setText("Красный");
-        Red.setCallbackData("Red");
+        Red.setCallbackData("red");
 
         InlineKeyboardButton Black = new InlineKeyboardButton();
 
         Black.setText("Черный");
-        Black.setCallbackData("Black");
+        Black.setCallbackData("black");
 
         rowInline.add(Red);
         rowInline.add(Black);

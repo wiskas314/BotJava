@@ -12,7 +12,7 @@ public class MessageHandler {
     /**
      * обрабатывает текст входящего сообщения и возвращает текстовый ответ.
      */
-    public String handleMessage(String message, String userName, long chatID) {
+    public String handleMessage(String message, String userName) {
 
         if (StringUtils.isNotEmpty(message)) {
             switch (message) {

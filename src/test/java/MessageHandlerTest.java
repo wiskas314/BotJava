@@ -22,7 +22,7 @@ class MessageHandlerTest {
         String username = "Bob";
 
 
-        String result = messageHandler.handleMessage(message, username,);
+        String result = messageHandler.handleMessage(message, username);
 
         Assert.assertEquals("Вы написали: TEST", result);
     }

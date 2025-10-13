@@ -49,7 +49,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             if (text.equals("/play")) {
                 send(messageHandler.addKeybord(update));
             } else {
-                String responseText = messageHandler.handleMessage(text, userName, chatId);
+                String responseText = messageHandler.handleMessage(text, userName);
                 SendMessage message = new SendMessage();
                 message.setChatId(String.valueOf(chatId));
                 message.setText(responseText);
