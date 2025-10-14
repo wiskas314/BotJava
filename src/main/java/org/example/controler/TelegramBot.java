@@ -8,10 +8,11 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-/**
- * TelegramBot - основной класс для работы с Telegram Bot API
- */
+import java.util.HashMap;
+import java.util.Map;
+
 public class TelegramBot extends TelegramLongPollingBot {
+    private Map<String, RideTheBus> activeGames;
     private final String botUsername;
     private final String botToken;
     private final MessageHandler messageHandler;
@@ -31,6 +32,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     }
 
+    }
+    /**
+    *Метод обработки полученного сообщения(либо команды)
+     */
     @Override
     public void onUpdateReceived(Update update) {
 
