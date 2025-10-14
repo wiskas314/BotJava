@@ -2,7 +2,7 @@ package org.example.controler;
 
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -28,7 +28,9 @@ public class TelegramBot extends TelegramLongPollingBot {
         this.botToken = botToken;
         this.callbackHandler = new CallBackHandler();
         this.messageHandler = new MessageHandler();
-        this.activeGames = new HashMap<>();
+
+
+    }
 
     }
     /**
@@ -36,59 +38,35 @@ public class TelegramBot extends TelegramLongPollingBot {
      */
     @Override
     public void onUpdateReceived(Update update) {
-        try {
-            if (update.hasCallbackQuery()) {
-                CallbackQuery callbackQuery = update.getCallbackQuery();
-                String chatId = callbackQuery.getMessage().getChatId().toString();
-                String callbackData = callbackQuery.getData();
 
-                if (callbackData.equals("ride_the_bus")) {
-                    activeGames.remove(chatId);
-                    RideTheBus game = new RideTheBus();
-                    activeGames.put(chatId, game);
-                    game.startGame(chatId, this);
-                    return;
-                }
+        if (update.hasCallbackQuery()) {
+            send(callbackHandler.handleCallback(update));
+            return;
+        }
 
-                RideTheBus lateGame = activeGames.get(chatId);
-                if (lateGame != null) {
-                    if (lateGame.getIsGameOver()) {
-                        activeGames.remove(chatId);
-                        return;
-                    }
-                    lateGame.processUserChoice(callbackData, this);
-                    return;
-                }
 
-                SendMessage response = callbackHandler.handleCallback(update);
-                send(response);
+        if (update.hasMessage() && update.getMessage().hasText()) {
+            Message userMessage = update.getMessage();
+            long chatId = userMessage.getChatId();
+            String userName = getUsername(update);
+            String text = userMessage.getText();
+
+            if (text.equals("/play")) {
+                send(messageHandler.addKeybord(update));
+            } else {
+                String responseText = messageHandler.handleMessage(text, userName);
+                SendMessage message = new SendMessage();
+                message.setChatId(String.valueOf(chatId));
+                message.setText(responseText);
+                send(message);
             }
-
-            if (update.hasMessage() && update.getMessage().hasText()) {
-                Message userMessage = update.getMessage();
-                long chatId = userMessage.getChatId();
-                String userName = getUsername(update);
-                String text = userMessage.getText();
-
-                if (text.equals("/play")) {
-                    send(messageHandler.addKeybord(Long.toString(chatId)));
-                } else {
-                    String responseText = messageHandler.handleMessage(text, userName);
-                    SendMessage message = new SendMessage();
-                    message.setChatId(String.valueOf(chatId));
-                    message.setText(responseText);
-                    send(message);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Произошла ошибка при обработке обновления: " + e.getMessage());
         }
     }
 
     /**
      * Отправляет сообщение
      */
-    protected void send(SendMessage message) {
+    private void send(SendMessage message) {
         try {
             execute(message);
         } catch (TelegramApiException e) {

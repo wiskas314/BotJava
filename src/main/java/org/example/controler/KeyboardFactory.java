@@ -1,6 +1,7 @@
 package org.example.controler;
 
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
@@ -14,7 +15,8 @@ public class KeyboardFactory {
     /**
      * Создает клавиатуру для выбора игры
      */
-    public SendMessage createGameSelectionKeyboard(String chatId) {
+    public SendMessage createGameSelectionKeyboard(Update update) {
+        String chatId = update.getMessage().getChatId().toString();
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
@@ -36,10 +38,11 @@ public class KeyboardFactory {
     }
 
     /**
-     *Создает клавиатуру для первого раунда игры - выбора цвета карты
+     *Создает клавиатуру для первого раунда игры выбора цвета карты
      *
      */
-    public SendMessage KeyboardFirstRound(String chatId){
+    public SendMessage KeyboardFirstRound(Update update){
+        String chatId = update.getMessage().getChatId().toString();
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
@@ -60,7 +63,7 @@ public class KeyboardFactory {
 
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        message.setText("Раунд 1 \nВыберите цвет:");
+        message.setText("Выберите цвет:");
         message.setReplyMarkup(keyboard);
 
         return message;
@@ -70,7 +73,8 @@ public class KeyboardFactory {
     /**
      *Создает клавиатуру для раунда выше/ниже"
      */
-    public SendMessage createHigherLowerKeyboard(String chatId) {
+    public SendMessage createHigherLowerKeyboard(Update update) {
+        String chatId = update.getMessage().getChatId().toString();
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
@@ -90,7 +94,7 @@ public class KeyboardFactory {
 
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        message.setText("Раунд 2 \nВыберите будет ли следующая карта старшей или младшей масти:");
+        message.setText("Выберите будет ли следующая карта старшей или младшей масти:");
         message.setReplyMarkup(keyboard);
 
         return message;
@@ -99,7 +103,8 @@ public class KeyboardFactory {
     /**
      * Создает клавиатуру для раунда диапазон
      */
-    public SendMessage createRangeKeyboard(String chatId) {
+    public SendMessage createRangeKeyboard(Update update) {
+        String chatId = update.getMessage().getChatId().toString();
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
@@ -119,7 +124,7 @@ public class KeyboardFactory {
         keyboard.setKeyboard(rows);
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        message.setText("Раунд 3 \nВыберите будет ли следующая карта внутри или вне диапазона:");
+        message.setText("Выберите будет ли следующая карта внутри или вне диапазона:");
         message.setReplyMarkup(keyboard);
         return message;
     }
@@ -127,7 +132,8 @@ public class KeyboardFactory {
     /**
      * Создает клавиатуру для раунда угадай масть
      */
-    public SendMessage createSuitGuessKeyboard(String chatId) {
+    public SendMessage createSuitGuessKeyboard(Update update) {
+        String chatId = update.getMessage().getChatId().toString();
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
@@ -160,7 +166,7 @@ public class KeyboardFactory {
         keyboard.setKeyboard(rows);
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
-        message.setText("Раунд 4 \nВыберите какой масти будет следующая карта:");
+        message.setText("Выберите какой масти будет слшедующая карта:");
         message.setReplyMarkup(keyboard);
         return message;
     }

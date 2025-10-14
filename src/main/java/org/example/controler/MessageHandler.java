@@ -3,6 +3,7 @@ package org.example.controler;
 
 import org.apache.commons.lang3.StringUtils;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
 
 /**
  * класс для обрабатывания входящих сообщений и генерации ответа
@@ -12,6 +13,7 @@ public class MessageHandler {
      * обрабатывает текст входящего сообщения и возвращает текстовый ответ.
      */
     public String handleMessage(String message, String userName) {
+
         if (StringUtils.isNotEmpty(message)) {
             switch (message) {
                 case "/start":
@@ -34,9 +36,9 @@ public class MessageHandler {
     /**
      * вызывает клавиатуру с выбором игры
      */
-    public SendMessage addKeybord(String chatId){
+    public SendMessage addKeybord(Update update){
         KeyboardFactory keyboardFactory = new KeyboardFactory();
-        SendMessage keyboard = keyboardFactory.createGameSelectionKeyboard(chatId);
+        SendMessage keyboard = keyboardFactory.createGameSelectionKeyboard(update);
         return  keyboard;
     }
     /**

@@ -23,7 +23,8 @@ public class CallBackHandler {
 
         switch (callbackData) {
             case "ride_the_bus":
-                message.setText("Начнем же игру!");
+                message.setText("Hello"+"\u2665\uFE0F");
+
                 break;
             default:
                 message.setText("❌ Неизвестная команда: " + callbackData);
