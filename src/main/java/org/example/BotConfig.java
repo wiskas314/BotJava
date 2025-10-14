@@ -23,7 +23,7 @@ public class BotConfig {
         if (args.length > 0) {
             return args[0];
         }
-        return System.getProperty("BOT_TOKEN", "8089912223:AAGIQdvDV0FBOCI_FRQB1Lp2Oj5gZX7SN6o");
+        return System.getProperty("BOT_TOKEN", "bot_token");
     }
 
     /**
@@ -33,7 +33,7 @@ public class BotConfig {
         if (args.length > 1) {
             return args[1];
         }
-        return System.getProperty("BOT_USERNAME", "@OOPject_bot");
+        return System.getProperty("BOT_USERNAME", "bot_username");
     }
 
     /**
