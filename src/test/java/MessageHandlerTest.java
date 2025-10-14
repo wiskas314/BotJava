@@ -1,9 +1,10 @@
 import org.example.controler.MessageHandler;
 
+import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /**
  * Тест обработки классом текста сообщения, отправленного пользователем
@@ -20,8 +21,9 @@ class MessageHandlerTest {
         String message = "TEST";
         String username = "Bob";
 
-        String result = messageHandler.handleUpdate(message, username);
 
-        assertEquals("Вы написали: TEST", result);
+        String result = messageHandler.handleMessage(message, username);
+
+        Assert.assertEquals("Вы написали: TEST", result);
     }
 }

@@ -2,7 +2,9 @@ package org.example.controler;
 
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+
 import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -13,40 +15,59 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
     private final MessageHandler messageHandler;
+    private final CallBackHandler callbackHandler;
 
+
+    /**
+     * конструктор
+     */
     public TelegramBot(String botUsername, String botToken) {
+        super(botToken);
         this.botUsername = botUsername;
         this.botToken = botToken;
+        this.callbackHandler = new CallBackHandler();
         this.messageHandler = new MessageHandler();
+
+
     }
 
     @Override
     public void onUpdateReceived(Update update) {
-        long chatId = update.getMessage().getChatId();
-        String userName = getUsername(update);
-        String userMessage = getMessage(update);
 
-        String responseText = messageHandler.handleUpdate(userMessage, userName);
+        if (update.hasCallbackQuery()) {
+            send(callbackHandler.handleCallback(update));
+            return;
+        }
 
-        SendMessage message = new SendMessage();
-        message.setChatId(String.valueOf(chatId));
-        message.setText(responseText);
+
+        if (update.hasMessage() && update.getMessage().hasText()) {
+            Message userMessage = update.getMessage();
+            long chatId = userMessage.getChatId();
+            String userName = getUsername(update);
+            String text = userMessage.getText();
+
+            if (text.equals("/play")) {
+                send(messageHandler.addKeybord(update));
+            } else {
+                String responseText = messageHandler.handleMessage(text, userName);
+                SendMessage message = new SendMessage();
+                message.setChatId(String.valueOf(chatId));
+                message.setText(responseText);
+                send(message);
+            }
+        }
+    }
+
+    /**
+     * Отправляет сообщение
+     */
+    private void send(SendMessage message) {
         try {
             execute(message);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
-    }
 
-    /**
-     * Метод возвращает текст из сообщения пользователя
-     */
-    private String getMessage(Update update) {
-        String messageText = "";
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            messageText = update.getMessage().getText();
-        }
-        return messageText;
     }
 
     /**
