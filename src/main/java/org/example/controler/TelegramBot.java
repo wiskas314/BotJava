@@ -11,6 +11,9 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Класс телеграм-бота
+ */
 public class TelegramBot extends TelegramLongPollingBot {
     private Map<String, RideTheBus> activeGames;
     private final String botUsername;
@@ -31,9 +34,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         this.activeGames = new HashMap<>();
 
     }
-    /**
-    *Метод обработки полученного сообщения(либо команды)
-     */
+
     @Override
     public void onUpdateReceived(Update update) {
         try {
