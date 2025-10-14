@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-
+/**
+ * Класс Реализующий игру в Ride The Bus
+ */
 public class RideTheBus {
     private String[] values;
     private String[] suits;
@@ -35,7 +37,9 @@ public class RideTheBus {
     }
 
 
-    // Создание колоды карт
+    /**
+     * Инициализация колоды
+     */
     private void initializeDeck() {
         deck = new ArrayList<>();
         for (String suit : suits) {
@@ -46,7 +50,9 @@ public class RideTheBus {
         shuffleDeck();
     }
 
-    // Используем алгоритм Фишера-Йейтса (Knuth shuffle) для перемешивания колоды
+    /**
+     *Используем алгоритм Фишера-Йейтса (Knuth shuffle) для перемешивания колоды
+     */
     private void shuffleDeck() {
         for (int i = deck.size() - 1; i > 0; i--) {
             int randomIndex = random.nextInt(i + 1);
@@ -55,8 +61,9 @@ public class RideTheBus {
             deck.set(randomIndex, temp);
         }
     }
-
-    // Раздача карты
+    /**
+     *Раздача карты
+     */
     private Card dealCard() {
         if (roundNumber == 1 && deck.size() < 52) {
             initializeDeck();
@@ -64,8 +71,9 @@ public class RideTheBus {
 
         return deck.remove(deck.size() - 1);
     }
-
-    // Добавление карты на стол
+    /**
+     *Добавление карты на стол
+     */
     private void addToTable(Card card) {
         for (int i = 0; i < 4; i++) {
             if (table[i] == null) {
@@ -74,6 +82,9 @@ public class RideTheBus {
             }
         }
     }
+    /**
+     *Получение карт на столе как строку, а не как массив Card
+     */
     private String getTableAsString(){
         String tableAsString = "";
         for (Card tableCard : table){
@@ -82,7 +93,9 @@ public class RideTheBus {
             }
         return tableAsString;
     }
-    // Проверка на победу
+    /**
+     *Проверка на победу
+     */
     private boolean checkWin(String message, Card card) {
         switch (roundNumber) {
             case 1:
@@ -116,12 +129,16 @@ public class RideTheBus {
         }
         return true;
     }
-
+    /**
+     *Начало игры
+     */
     public void startGame(String chatId, TelegramBot bot) {
         this.chatId = chatId;
         play(bot);
     }
-
+    /**
+     *Сброс состояния игры
+     */
     private void resetGame() {
         roundNumber = 1;
         table = new Card[4];
@@ -130,10 +147,15 @@ public class RideTheBus {
         isGameOver = false;
         isProcessing = false; // Сброс флага обработки
     }
+    /**
+     *Геттер isGameOver
+     */
     public boolean getIsGameOver(){
         return isGameOver;
     }
-
+    /**
+     *Метод реализующий интерфейс во время игры
+     */
     private void play(TelegramBot bot) {
         SendMessage message = null;
 
@@ -165,8 +187,9 @@ public class RideTheBus {
         }
         bot.send(message);
     }
-
-    // Метод для обработки выбора пользователя
+    /**
+     *Метод для обработки выбора пользователя
+     */
     public void processUserChoice(String callbackData, TelegramBot bot) {
         if (isGameOver) {
             return;
@@ -193,7 +216,9 @@ public class RideTheBus {
         }
 
     }
-
+    /**
+     *Обработка конца игры
+     */
     private void handleGameOver(TelegramBot bot, boolean isWinner) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);

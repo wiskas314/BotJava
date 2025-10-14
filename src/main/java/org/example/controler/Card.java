@@ -1,5 +1,8 @@
 package org.example.controler;
 
+/**
+ * Класс, реализующий представление карты
+ */
 public class Card {
     private int value;
     private String suit;
@@ -9,7 +12,9 @@ public class Card {
     public final int KING = 13;
     public final int QUEEN = 12;
     public final int JACK = 11;
-
+    /**
+     *Конструктор класса
+     */
     public Card(String value, String suit) {
         this.suit = suit;
         this.fullRepresentation = suit + value;
@@ -33,15 +38,21 @@ public class Card {
         }
     }
 
-
+    /**
+     *Получить значение карты
+     */
     public int getValue() {
         return value;
     }
-
+    /**
+     *Получить масть карты
+     */
     public String getSuit() {
         return suit;
     }
-
+    /**
+     *Получить предлставление карты как строку
+     */
     public String getCard() {
         return fullRepresentation;
     }
