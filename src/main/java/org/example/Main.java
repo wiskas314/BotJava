@@ -20,7 +20,7 @@ public class Main {
             BotConfig config = new BotConfig(args);
             botsApi.registerBot(new TelegramBot(config.getUsername(), config.getToken()));
 
-            System.out.println("EchoBot успешно запущен!");
+            System.out.println("GamblingBot успешно запущен!");
 
 
         } catch (TelegramApiException e) {
