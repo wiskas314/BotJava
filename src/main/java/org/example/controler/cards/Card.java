@@ -1,4 +1,4 @@
-package org.example.game;
+package org.example.controler.cards;
 
 /**
  * Класс, реализующий представление карты
