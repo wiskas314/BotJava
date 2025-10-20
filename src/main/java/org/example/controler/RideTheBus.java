@@ -1,11 +1,9 @@
 package org.example.controler;
 
 import org.example.controler.cards.Card;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.example.controler.cards.Deck;
 
 
-import java.util.Random;
 
 /**
  * Класс Реализующий игру в Ride The Bus
@@ -21,7 +19,6 @@ public class RideTheBus {
     public RideTheBus() {
         keyboardFactory = new KeyboardFactory();
         specialCard = "\uD83C\uDCCF";
-
         isGameOver = false;
         isProcessing = false;
         deck = new Deck(4);
@@ -29,7 +26,7 @@ public class RideTheBus {
     }
 
     /**
-     *Проверка на победу
+     * Проверка на победу
      */
     private boolean checkWin(String message, Card card) {
         switch (deck.roundNumber) {
@@ -65,14 +62,14 @@ public class RideTheBus {
         return true;
     }
     /**
-     *Начало игры
+     * Начало игры
      */
     public void startGame(String chatId, TelegramBot bot) {
         this.chatId = chatId;
         play(bot);
     }
     /**
-     *Сброс состояния игры
+     * Сброс состояния игры
      */
     private void resetGame() {
         deck.roundNumber = 1;
@@ -83,32 +80,35 @@ public class RideTheBus {
         isProcessing = false; // Сброс флага обработки
     }
     /**
-     *Геттер isGameOver
+     * Геттер isGameOver
      */
-    public boolean getIsGameOver(){
+    public boolean IsGameOver(){
         return isGameOver;
     }
     /**
-     *Метод реализующий интерфейс во время игры
+     * Метод реализующий интерфейс во время игры
      */
     private void play(TelegramBot bot) {
-        SendMessage message = null;
-
+        String roundText = "";
         switch (deck.roundNumber) {
             case 1:
-                message = keyboardFactory.KeyboardFirstRound(chatId);
+                roundText = "Раунд 1 \nВыберите цвет:";
+                bot.keyboard = keyboardFactory.keyboardFirstRound();
                 break;
 
             case 2:
-                message = keyboardFactory.createHigherLowerKeyboard(chatId);
+                roundText = "Раунд 2 \nВыберите будет ли следующая карта старшей или младшей масти:";
+                bot.keyboard = keyboardFactory.createHigherLowerKeyboard();
                 break;
 
             case 3:
-                message = keyboardFactory.createRangeKeyboard(chatId);
+                roundText = "Раунд 3 \nВыберите будет ли следующая карта внутри или вне диапазона:";
+                bot.keyboard = keyboardFactory.createRangeKeyboard();
                 break;
 
             case 4:
-                message = keyboardFactory.createSuitGuessKeyboard(chatId);
+                roundText = "Раунд 4 \nВыберите какой масти будет следующая карта:";
+                bot.keyboard = keyboardFactory.createSuitGuessKeyboard();
                 break;
 
             case 5:
@@ -117,13 +117,12 @@ public class RideTheBus {
                 return;
         }
 
-        if (message != null) {
-            message.setText(message.getText() + "\n" + deck.getTableAsString() + " " + specialCard);
+        if (bot.keyboard != null) {
+            bot.sendMessage(roundText + "\n" + deck.getTableAsString() + " " + specialCard, chatId, bot.keyboard);
         }
-        bot.send(message);
     }
     /**
-     *Метод для обработки выбора пользователя
+     * Метод для обработки выбора пользователя
      */
     public void processUserChoice(String callbackData, TelegramBot bot) {
         if (isGameOver) {
@@ -133,12 +132,9 @@ public class RideTheBus {
         Card card = deck.dealCard();
         deck.addToTable(card);
         boolean isWin = checkWin(callbackData, card);
-        SendMessage winMessage = new SendMessage();
-        winMessage.setChatId(chatId);
 
         if (isWin) {
-            winMessage.setText(deck.getTableAsString() + "\nПоздравляем, вы выиграли!");
-            bot.send(winMessage);
+            bot.sendMessage(deck.getTableAsString() + "\nПоздравляем, вы выиграли!",chatId,null);
 
             if (deck.roundNumber == 4) {
                 handleGameOver(bot, true);
@@ -155,20 +151,15 @@ public class RideTheBus {
      *Обработка конца игры
      */
     private void handleGameOver(TelegramBot bot, boolean isWinner) {
-        SendMessage message = new SendMessage();
-        message.setChatId(chatId);
-
         if (isWinner) {
-            message.setText(deck.getTableAsString() + "\nВы прошли все раунды! 🎉\nХотите выбрать другую игру?");
+            bot.sendMessage(deck.getTableAsString() + "\nВы прошли все раунды! 🎉\nХотите выбрать другую игру?",
+                    chatId,
+                    keyboardFactory.createGameSelectionKeyboard());
         } else {
-            message.setText(deck.getTableAsString() + "\nК сожалению, вы проиграли! Хотите сыграть снова?");
+            bot.sendMessage(deck.getTableAsString() + "\nК сожалению, вы проиграли! Хотите сыграть снова?",
+                    chatId,
+                    keyboardFactory.createGameSelectionKeyboard());
         }
-
-        message.setReplyMarkup(keyboardFactory.createGameSelectionKeyboard(chatId).getReplyMarkup());
-        bot.send(message);
         resetGame();
     }
-
-
-
 }

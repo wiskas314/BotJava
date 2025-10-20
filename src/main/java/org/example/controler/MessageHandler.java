@@ -2,7 +2,6 @@ package org.example.controler;
 
 
 import org.apache.commons.lang3.StringUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 /**
  * класс для обрабатывания входящих сообщений и генерации ответа
@@ -31,14 +30,6 @@ public class MessageHandler {
         }
     }
 
-    /**
-     * вызывает клавиатуру с выбором игры
-     */
-    public SendMessage addKeybord(String chatId){
-        KeyboardFactory keyboardFactory = new KeyboardFactory();
-        SendMessage keyboard = keyboardFactory.createGameSelectionKeyboard(chatId);
-        return  keyboard;
-    }
     /**
      * Генерируется эхо-сообщение пользователю
      */

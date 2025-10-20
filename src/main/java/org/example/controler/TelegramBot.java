@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.HashMap;
@@ -19,9 +20,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
     private final MessageHandler messageHandler;
-    private final CallBackHandler callbackHandler;
-
-
+    public InlineKeyboardMarkup keyboard;
     /**
      * конструктор
      */
@@ -29,10 +28,9 @@ public class TelegramBot extends TelegramLongPollingBot {
         super(botToken);
         this.botUsername = botUsername;
         this.botToken = botToken;
-        this.callbackHandler = new CallBackHandler();
         this.messageHandler = new MessageHandler();
         this.activeGames = new HashMap<>();
-
+        keyboard = null;
     }
 
     @Override
@@ -53,16 +51,13 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 RideTheBus lateGame = activeGames.get(chatId);
                 if (lateGame != null) {
-                    if (lateGame.getIsGameOver()) {
+                    if (lateGame.IsGameOver()) {
                         activeGames.remove(chatId);
                         return;
                     }
                     lateGame.processUserChoice(callbackData, this);
                     return;
                 }
-
-                SendMessage response = callbackHandler.handleCallback(update);
-                send(response);
             }
 
             if (update.hasMessage() && update.getMessage().hasText()) {
@@ -72,24 +67,36 @@ public class TelegramBot extends TelegramLongPollingBot {
                 String text = userMessage.getText();
 
                 if (text.equals("/play")) {
-                    send(messageHandler.addKeybord(Long.toString(chatId)));
+                    KeyboardFactory keyboardFactory = new KeyboardFactory();
+                    SendMessage message = new SendMessage();
+                    message.setChatId(chatId);
+                    message.setText("Выберите игру:");
+                    message.setReplyMarkup(keyboardFactory.createGameSelectionKeyboard());
+
+                    sender(message);
                 } else {
                     String responseText = messageHandler.handleMessage(text, userName);
                     SendMessage message = new SendMessage();
                     message.setChatId(String.valueOf(chatId));
                     message.setText(responseText);
-                    send(message);
+                    sender(message);
                 }
             }
         } catch (Exception e) {
             System.err.println("Произошла ошибка при обработке обновления: " + e.getMessage());
         }
     }
-
+    public void sendMessage(String text, String chatID, InlineKeyboardMarkup markup){
+        SendMessage message = new SendMessage();
+        message.setChatId(chatID);
+        message.setText(text);
+        message.setReplyMarkup(markup);
+        sender(message);
+    }
     /**
      * Отправляет сообщение
      */
-    protected void send(SendMessage message) {
+    protected void sender(SendMessage message) {
         try {
             execute(message);
         } catch (TelegramApiException e) {
@@ -117,4 +124,3 @@ public class TelegramBot extends TelegramLongPollingBot {
         return botToken;
     }
 }
-

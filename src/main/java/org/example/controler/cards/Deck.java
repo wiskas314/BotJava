@@ -1,10 +1,11 @@
 package org.example.controler.cards;
 
-
-
 import java.util.ArrayList;
 import java.util.Random;
 
+/**
+ * класс колоды карт
+ */
 public class Deck {
     private ArrayList<Card> deck;
     private Random random;
@@ -12,7 +13,11 @@ public class Deck {
     private String[] values;
     public int roundNumber;
     public Card[] table;
+    static private int  numberOfCards = 52;
 
+    /**
+     *конструктор для колоды
+     */
     public Deck(int n){
         random = new Random();
         suits = new String[]{"♠️", "♥️", "♦️", "♣️"};
@@ -49,7 +54,7 @@ public class Deck {
      *Раздача карты
      */
     public Card dealCard() {
-        if (roundNumber == 1 && deck.size() < 52) {
+        if (roundNumber == 1 && deck.size() < numberOfCards) {
             initializeDeck();
         }
 
