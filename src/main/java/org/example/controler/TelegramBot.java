@@ -62,7 +62,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             if (update.hasMessage() && update.getMessage().hasText()) {
                 Message userMessage = update.getMessage();
-                long chatId = userMessage.getChatId();
+                String chatId = String.valueOf(userMessage.getChatId());
                 String userName = getUsername(update);
                 String text = userMessage.getText();
 
@@ -77,7 +77,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 } else {
                     String responseText = messageHandler.handleMessage(text, userName);
                     SendMessage message = new SendMessage();
-                    message.setChatId(String.valueOf(chatId));
+                    message.setChatId(chatId);
                     message.setText(responseText);
                     sender(message);
                 }
