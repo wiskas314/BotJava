@@ -14,12 +14,14 @@ public class MessageHandler {
         if (StringUtils.isNotEmpty(message)) {
             switch (message) {
                 case "/start":
-                    return startMessage(userName);
+                    return "Привет, " + userName + "! Я бот, готовый помогать." +
+                            "\nЧтобы узнать, что я умею, введи /help";
                 case "/help":
                     return """
                 Вот список доступных команд:
                 /start - Начать общение с ботом
-                /help - Получить список команд""";
+                /help - Получить список команд
+                /play - Вызывает меню с выбором игр """;
                 default:
                     return echoMessage(message);
             }
@@ -27,17 +29,12 @@ public class MessageHandler {
             return "Ошибка обработки входных данных, проверьте что вы ввели текст!";
         }
     }
+
     /**
      * Генерируется эхо-сообщение пользователю
      */
     private String echoMessage(String messageText) {
         return "Вы написали: " + messageText;
-    }
-    /**
-     * Сообщение которое генерируется при начале диалога либо после команды /start
-     */
-    private String startMessage(String userName) {
-        return "Привет, " + userName + "! Я бот, готовый помогать.\nЧтобы узнать, что я умею, введи /help";
     }
 
 }
