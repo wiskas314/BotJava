@@ -1,4 +1,4 @@
-import org.example.controler.Card;
+import org.example.controler.cards.Card;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 

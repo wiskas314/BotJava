@@ -3,9 +3,6 @@ import org.example.controler.MessageHandler;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
-
-
-
 /**
  * Тест обработки классом текста сообщения, отправленного пользователем
  */
@@ -20,7 +17,6 @@ class MessageHandlerTest {
 
         String message = "TEST";
         String username = "Bob";
-
 
         String result = messageHandler.handleMessage(message, username);
 

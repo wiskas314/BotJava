@@ -2,10 +2,11 @@ package org.example.controler;
 
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.HashMap;
@@ -19,9 +20,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private final String botUsername;
     private final String botToken;
     private final MessageHandler messageHandler;
-    private final CallBackHandler callbackHandler;
-
-
+    public InlineKeyboardMarkup keyboard;
     /**
      * конструктор
      */
@@ -29,45 +28,75 @@ public class TelegramBot extends TelegramLongPollingBot {
         super(botToken);
         this.botUsername = botUsername;
         this.botToken = botToken;
-        this.callbackHandler = new CallBackHandler();
         this.messageHandler = new MessageHandler();
-
-
-    }
-
+        this.activeGames = new HashMap<>();
+        keyboard = null;
     }
 
     @Override
     public void onUpdateReceived(Update update) {
+        try {
+            if (update.hasCallbackQuery()) {
+                CallbackQuery callbackQuery = update.getCallbackQuery();
+                String chatId = callbackQuery.getMessage().getChatId().toString();
+                String callbackData = callbackQuery.getData();
 
-        if (update.hasCallbackQuery()) {
-            send(callbackHandler.handleCallback(update));
-            return;
-        }
+                if (callbackData.equals("ride_the_bus")) {
+                    activeGames.remove(chatId);
+                    RideTheBus game = new RideTheBus();
+                    activeGames.put(chatId, game);
+                    game.startGame(chatId, this);
+                    return;
+                }
 
-
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            Message userMessage = update.getMessage();
-            long chatId = userMessage.getChatId();
-            String userName = getUsername(update);
-            String text = userMessage.getText();
-
-            if (text.equals("/play")) {
-                send(messageHandler.addKeybord(update));
-            } else {
-                String responseText = messageHandler.handleMessage(text, userName);
-                SendMessage message = new SendMessage();
-                message.setChatId(String.valueOf(chatId));
-                message.setText(responseText);
-                send(message);
+                RideTheBus lateGame = activeGames.get(chatId);
+                if (lateGame != null) {
+                    if (lateGame.IsGameOver()) {
+                        activeGames.remove(chatId);
+                        return;
+                    }
+                    lateGame.processUserChoice(callbackData, this);
+                    return;
+                }
             }
+
+            if (update.hasMessage() && update.getMessage().hasText()) {
+                Message userMessage = update.getMessage();
+                String chatId = String.valueOf(userMessage.getChatId());
+                String userName = getUsername(update);
+                String text = userMessage.getText();
+
+                if (text.equals("/play")) {
+                    KeyboardFactory keyboardFactory = new KeyboardFactory();
+                    SendMessage message = new SendMessage();
+                    message.setChatId(chatId);
+                    message.setText("Выберите игру:");
+                    message.setReplyMarkup(keyboardFactory.createGameSelectionKeyboard());
+
+                    sender(message);
+                } else {
+                    String responseText = messageHandler.handleMessage(text, userName);
+                    SendMessage message = new SendMessage();
+                    message.setChatId(chatId);
+                    message.setText(responseText);
+                    sender(message);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Произошла ошибка при обработке обновления: " + e.getMessage());
         }
     }
-
+    public void sendMessage(String text, String chatID, InlineKeyboardMarkup markup){
+        SendMessage message = new SendMessage();
+        message.setChatId(chatID);
+        message.setText(text);
+        message.setReplyMarkup(markup);
+        sender(message);
+    }
     /**
      * Отправляет сообщение
      */
-    private void send(SendMessage message) {
+    protected void sender(SendMessage message) {
         try {
             execute(message);
         } catch (TelegramApiException e) {
@@ -95,4 +124,3 @@ public class TelegramBot extends TelegramLongPollingBot {
         return botToken;
     }
 }
-
