@@ -8,7 +8,6 @@ public class BotConfig {
     private final String username;
 
     /**
-     *
      * конструктор конфигурации устанавливающий параметры для имени и токена
      */
     public BotConfig(String[] args) {

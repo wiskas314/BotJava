@@ -8,50 +8,40 @@ public class Card {
     private String suit;
     private String fullRepresentation;
 
-    public final int ACE = 14;
-    public final int KING = 13;
-    public final int QUEEN = 12;
-    public final int JACK = 11;
+    public static final int ACE = 14;
+    public static final int KING = 13;
+    public static final int QUEEN = 12;
+    public static final int JACK = 11;
     /**
-     *Конструктор класса
+     * Конструктор класса
      */
     public Card(String value, String suit) {
         this.suit = suit;
         this.fullRepresentation = suit + value;
 
-        switch (value) {
-            case "J":
-                this.value = JACK;
-                break;
-            case "Q":
-                this.value = QUEEN;
-                break;
-            case "K":
-                this.value = KING;
-                break;
-            case "A":
-                this.value = ACE;
-                break;
-            default:
-                this.value = Integer.parseInt(value);
-                break;
-        }
+        this.value = switch (value){
+            case "J" -> JACK;
+            case "Q" -> QUEEN;
+            case "K" -> KING;
+            case "A" -> ACE;
+            default -> Integer.parseInt(value);
+        };
     }
 
     /**
-     *Получить значение карты
+     * Получить значение карты
      */
     public int getValue() {
         return value;
     }
     /**
-     *Получить масть карты
+     * Получить масть карты
      */
     public String getSuit() {
         return suit;
     }
     /**
-     *Получить предлставление карты как строку
+     * Получить предлставление карты как строку
      */
     public String getCard() {
         return fullRepresentation;
