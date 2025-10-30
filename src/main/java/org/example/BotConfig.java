@@ -8,7 +8,6 @@ public class BotConfig {
     private final String username;
 
     /**
-     *
      * конструктор конфигурации устанавливающий параметры для имени и токена
      */
     public BotConfig(String[] args) {
@@ -23,7 +22,7 @@ public class BotConfig {
         if (args.length > 0) {
             return args[0];
         }
-        return System.getProperty("BOT_TOKEN", "token");
+        return System.getProperty("BOT_TOKEN", "-");
     }
 
     /**
@@ -33,7 +32,7 @@ public class BotConfig {
         if (args.length > 1) {
             return args[1];
         }
-        return System.getProperty("BOT_USERNAME", "bot");
+        return System.getProperty("BOT_USERNAME", "-");
     }
 
     /**
