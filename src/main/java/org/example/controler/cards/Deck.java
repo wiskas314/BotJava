@@ -10,15 +10,13 @@ public class Deck {
     private Random random;
     private String[] suits;
     private String[] values;
-    public int roundNumber;
-    public Card[] table;
 
-    public Deck(int n){
+
+
+    public Deck(){
         random = new Random();
         suits = new String[]{"♠️", "♥️", "♦️", "♣️"};
         values = new String[]{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
-        roundNumber = 1;
-        table = new Card[n];
         initializeDeck();
     }
     /**
@@ -49,32 +47,6 @@ public class Deck {
      *Раздача карты
      */
     public Card dealCard() {
-        if (roundNumber == 1 && deck.size() < 52) {
-            initializeDeck();
-        }
-
         return deck.remove(deck.size() - 1);
-    }
-    /**
-     *Добавление карты на стол
-     */
-    public void addToTable(Card card) {
-        for (int i = 0; i < 4; i++) {
-            if (table[i] == null) {
-                table[i] = card;
-                break;
-            }
-        }
-    }
-    /**
-     *Получение карт на столе как строку, а не как массив Card
-     */
-    public String getTableAsString(){
-        String tableAsString = "";
-        for (Card tableCard : table){
-            if (tableCard == null) break;
-            tableAsString += tableCard.getCard();
-        }
-        return tableAsString;
     }
 }

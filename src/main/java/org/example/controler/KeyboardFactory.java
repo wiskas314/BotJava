@@ -18,13 +18,19 @@ public class KeyboardFactory {
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> rowInline = new ArrayList<>();
-        InlineKeyboardButton rideTheBusButton = new InlineKeyboardButton();
 
+        InlineKeyboardButton rideTheBusButton = new InlineKeyboardButton();
         rideTheBusButton.setText("Ride the Bus");
         rideTheBusButton.setCallbackData("ride_the_bus");
 
+        InlineKeyboardButton blackJackButton = new InlineKeyboardButton();
+        blackJackButton.setText("Black Jack");
+        blackJackButton.setCallbackData("black_jack");
+
         rowInline.add(rideTheBusButton);
+        rowInline.add(blackJackButton);
         rowsInline.add(rowInline);
+
         keyboard.setKeyboard(rowsInline);
 
         SendMessage message = new SendMessage();
@@ -35,9 +41,9 @@ public class KeyboardFactory {
         return message;
     }
 
+
     /**
-     *Создает клавиатуру для первого раунда игры - выбора цвета карты
-     *
+     *Создает клавиатуру для первого раунда игры Ride the Bus - выбора цвета карты
      */
     public SendMessage KeyboardFirstRound(String chatId){
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
@@ -68,7 +74,7 @@ public class KeyboardFactory {
     }
 
     /**
-     *Создает клавиатуру для раунда выше/ниже"
+     *Создает клавиатуру для раунда выше/ниже в игре Ride the Bus
      */
     public SendMessage createHigherLowerKeyboard(String chatId) {
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
@@ -97,7 +103,7 @@ public class KeyboardFactory {
     }
 
     /**
-     * Создает клавиатуру для раунда диапазон
+     * Создает клавиатуру для раунда диапазон в игре Ride the Bus
      */
     public SendMessage createRangeKeyboard(String chatId) {
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
@@ -125,7 +131,7 @@ public class KeyboardFactory {
     }
 
     /**
-     * Создает клавиатуру для раунда угадай масть
+     * Создает клавиатуру для раунда угадай масть в игре Ride the Bus
      */
     public SendMessage createSuitGuessKeyboard(String chatId) {
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
@@ -162,6 +168,35 @@ public class KeyboardFactory {
         message.setChatId(chatId);
         message.setText("Раунд 4 \nВыберите какой масти будет следующая карта:");
         message.setReplyMarkup(keyboard);
+        return message;
+    }
+
+    /**
+     * Создает клавиатуру для выбора пользователя во время игры BlackJack
+     */
+    public SendMessage createHitOrStandKeyboard(String chatId){
+        InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+
+        List<InlineKeyboardButton> row1 = new ArrayList<>();
+        InlineKeyboardButton hitButton = new InlineKeyboardButton();
+        hitButton.setText("Взять еще");
+        hitButton.setCallbackData("hit");
+        row1.add(hitButton);
+
+        InlineKeyboardButton standButton = new InlineKeyboardButton();
+        standButton.setText("Остановиться");
+        standButton.setCallbackData("stand");
+        row1.add(standButton);
+
+        rows.add(row1);
+        keyboard.setKeyboard(rows);
+
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText("Выберите будете ли вы еще добирать или остановитесь:");
+        message.setReplyMarkup(keyboard);
+
         return message;
     }
 }

@@ -15,7 +15,7 @@ import java.util.Map;
  * Класс телеграм-бота
  */
 public class TelegramBot extends TelegramLongPollingBot {
-    private Map<String, RideTheBus> activeGames;
+    private Map<String, Game> activeGames;
     private final String botUsername;
     private final String botToken;
     private final MessageHandler messageHandler;
@@ -43,6 +43,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 String chatId = callbackQuery.getMessage().getChatId().toString();
                 String callbackData = callbackQuery.getData();
 
+
                 if (callbackData.equals("ride_the_bus")) {
                     activeGames.remove(chatId);
                     RideTheBus game = new RideTheBus();
@@ -51,13 +52,21 @@ public class TelegramBot extends TelegramLongPollingBot {
                     return;
                 }
 
-                RideTheBus lateGame = activeGames.get(chatId);
-                if (lateGame != null) {
-                    if (lateGame.getIsGameOver()) {
+                if (callbackData.equals("black_jack")) {
+                    activeGames.remove(chatId);
+                    BlackJack game = new BlackJack();
+                    activeGames.put(chatId, game);
+                    game.startGame(chatId, this);
+                    return;
+                }
+
+                Game currentGame = activeGames.get(chatId);
+                if (currentGame != null) {
+                    if (currentGame.getIsGameOver()) {
                         activeGames.remove(chatId);
                         return;
                     }
-                    lateGame.processUserChoice(callbackData, this);
+                    currentGame.processUserChoice(callbackData, this);
                     return;
                 }
 
