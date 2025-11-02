@@ -17,8 +17,9 @@ class MessageHandlerTest {
 
         String message = "TEST";
         String username = "Bob";
+        Long chatID = 1234L;
 
-        String result = messageHandler.handleMessage(message, username);
+        String result = messageHandler.handleMessage(message, username,chatID);
 
         Assert.assertEquals("Вы написали: TEST", result);
     }

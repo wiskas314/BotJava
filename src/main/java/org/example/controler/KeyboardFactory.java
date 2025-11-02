@@ -58,7 +58,7 @@ public class KeyboardFactory {
      */
     public InlineKeyboardMarkup createHigherLowerKeyboard() {
         String[][][] buttons ={
-                {{"📈 Выше", "higher"}, {"📉 Ниже", "lower"}}
+                {{"📈 Выше", "higher"}, {"📉 Ниже", "lower"},{"Сохранить выигранное и выйти","exit"}}
         };
         return  createKeyboard(buttons);
     }
@@ -68,7 +68,7 @@ public class KeyboardFactory {
      */
     public InlineKeyboardMarkup createRangeKeyboard() {
         String[][][] buttons ={
-                {{"📥 Внутри диапазона", "inside"}, {"📤 Вне диапазона", "outside"}}
+                {{"📥 Внутри диапазона", "inside"}, {"📤 Вне диапазона", "outside"},{"Сохранить выигранное и выйти","exit"}}
         };
         return  createKeyboard(buttons);
     }
@@ -79,7 +79,29 @@ public class KeyboardFactory {
     public InlineKeyboardMarkup createSuitGuessKeyboard() {
         String[][][] buttons = {
                 {{"♥ Черви", "hearts"}, {"♦ Бубны", "diamonds"}},
-                {{"♣ Трефы", "clubs"}, {"♠ Пики", "peaks"}}
+                {{"♣ Трефы", "clubs"}, {"♠ Пики", "peaks"},{"Сохранить выигранное и выйти","exit"}}
+        };
+        return createKeyboard(buttons);
+    }
+
+    /**
+     * Создает клаивиатуру для ставок
+     */
+    public InlineKeyboardMarkup createBetKeyboard(){
+        String[][][] buttons = {
+                {{"10", "bet_10"}, {"50", "bet_50"}, {"100", "bet_100"}},
+                {{"200", "bet_200"}, {"500", "bet_500"}},
+                {{"1000", "bet_1000"}, {"Всё", "bet_all"}}
+        };
+        return createKeyboard(buttons);
+    }
+
+    /**
+     *создает клавиатуру для пополнения баланса
+     */
+    public InlineKeyboardMarkup createReplenishKeyboard(){
+        String[][][] buttons ={
+            {{" Пополнить баланс +500", "add_balance_500"}}
         };
         return createKeyboard(buttons);
     }

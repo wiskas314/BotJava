@@ -2,15 +2,23 @@ package org.example.controler;
 
 
 import org.apache.commons.lang3.StringUtils;
+import org.example.controler.db.UserService;
 
 /**
  * класс для обрабатывания входящих сообщений и генерации ответа
  */
 public class MessageHandler {
+    private final UserService userService;
+
+
+    public MessageHandler() {
+        this.userService = new UserService();
+    }
+
     /**
      * обрабатывает текст входящего сообщения и возвращает текстовый ответ.
      */
-    public String handleMessage(String message, String userName) {
+    public String handleMessage(String message, String userName,Long chatId) {
         if (StringUtils.isNotEmpty(message)) {
             switch (message) {
                 case "/start":
@@ -21,7 +29,10 @@ public class MessageHandler {
                 Вот список доступных команд:
                 /start - Начать общение с ботом
                 /help - Получить список команд
-                /play - Вызывает меню с выбором игр """;
+                /play - Вызывает меню с выбором игр
+                 /balance - Показывает ваш баланс""";
+                case "/balance":
+                    return "Ваш баланс " + String.valueOf(userService.getUserBalance(chatId));
                 default:
                     return echoMessage(message);
             }

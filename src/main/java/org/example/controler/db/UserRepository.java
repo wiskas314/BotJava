@@ -13,10 +13,10 @@ public class UserRepository {
     /**
      * Создание или получение пользователя
      */
-    public User createOrGetUser(Long chatId, String username) {
+     User createOrGetUser(Long chatId, String username) {
         String sql = "INSERT OR IGNORE INTO users (chat_id, username, balance) VALUES (?, ?, 1000)";
 
-        try (Connection conn = dbConfig.conn;
+        try (Connection conn = dbConfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
 
@@ -35,10 +35,10 @@ public class UserRepository {
     /**
      * Получение пользователя по chatId
      */
-    public User getUserByChatId(Long chatId) {
+     User getUserByChatId(Long chatId) {
         String sql = "SELECT chat_id, username, balance FROM users WHERE chat_id = ?";
 
-        try (Connection conn = dbConfig.conn;
+        try (Connection conn = dbConfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setLong(1, chatId);
@@ -61,10 +61,10 @@ public class UserRepository {
     /**
      * Обновление баланса пользователя
      */
-    public boolean updateBalance(Long chatId, int newBalance) {
+     boolean updateBalance(Long chatId, int newBalance) {
         String sql = "UPDATE users SET balance = ?, updated_at = CURRENT_TIMESTAMP WHERE chat_id = ?";
 
-        try (Connection conn = dbConfig.conn;
+        try (Connection conn = dbConfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, newBalance);
@@ -82,10 +82,10 @@ public class UserRepository {
     /**
      * Изменение баланса на указанную сумму (положительную или отрицательную)
      */
-    public boolean changeBalance(Long chatId, int amount) {
+     boolean changeBalance(Long chatId, int amount) {
         String sql = "UPDATE users SET balance = balance + ?, updated_at = CURRENT_TIMESTAMP WHERE chat_id = ?";
 
-        try (Connection conn = dbConfig.conn;
+        try (Connection conn = dbConfig.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             pstmt.setInt(1, amount);
@@ -103,14 +103,14 @@ public class UserRepository {
     /**
      * Проверка существования пользователя
      */
-    public boolean userExists(Long chatId) {
+     boolean userExists(Long chatId) {
         return getUserByChatId(chatId) != null;
     }
 
     /**
      * Проверка достаточности баланса
      */
-    public boolean hasSufficientBalance(Long chatId, int requiredAmount) {
+     boolean hasSufficientBalance(Long chatId, int requiredAmount) {
         User user = getUserByChatId(chatId);
         return user != null && user.getBalance() >= requiredAmount;
     }

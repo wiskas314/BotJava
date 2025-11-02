@@ -2,7 +2,7 @@ package org.example.controler;
 
 import org.example.controler.cards.Card;
 import org.example.controler.cards.Deck;
-
+import org.example.controler.db.UserService;
 
 
 /**
@@ -13,8 +13,14 @@ public class RideTheBus {
     private String specialCard;
     private final KeyboardFactory keyboardFactory;
     private String chatId;
+    private Long userID;
     private boolean isGameOver;
+    private final UserService userService;
     private boolean isProcessing;
+    private boolean betPlaced;
+    private int currentBet;
+    private int currentMultiplier;
+    private final int[] multipliers = {1, 2, 3, 5, 10};
 
     public RideTheBus() {
         keyboardFactory = new KeyboardFactory();
@@ -22,7 +28,16 @@ public class RideTheBus {
         isGameOver = false;
         isProcessing = false;
         deck = new Deck(4);
-
+        userService = new UserService();
+        currentBet = 0;
+        currentMultiplier = 1;
+    }
+    /**
+     * Установка пользователя
+     */
+    public void setUser(Long userId) {
+        this.userID = userId;
+        System.out.println("User set: " + userId); // Для отладки
     }
 
     /**
@@ -66,7 +81,17 @@ public class RideTheBus {
      */
     public void startGame(String chatId, TelegramBot bot) {
         this.chatId = chatId;
-        play(bot);
+        int balance = userService.getUserBalance(Long.valueOf(chatId));
+        if (!betPlaced) {
+            if(balance==0){
+                bot.sendMessage("Вам нужно пополнить баланс",chatId,keyboardFactory.createReplenishKeyboard());
+            }else{
+                bot.sendMessage("Ваш баланс " + balance + " Сделайте ставку для начала игры",
+                        chatId, keyboardFactory.createBetKeyboard());
+            }
+        }else{
+            play(bot);
+        }
     }
     /**
      * Сброс состояния игры
@@ -75,9 +100,11 @@ public class RideTheBus {
         deck.roundNumber = 1;
         deck = new Deck(4);
         deck.initializeDeck();
-
+        betPlaced = false;
         isGameOver = false;
-        isProcessing = false; // Сброс флага обработки
+        isProcessing = false;
+        currentBet = 0;
+        currentMultiplier = 1; // Сброс флага обработки
     }
     /**
      * Геттер isGameOver
@@ -89,6 +116,7 @@ public class RideTheBus {
      * Метод реализующий интерфейс во время игры
      */
     private void play(TelegramBot bot) {
+        currentMultiplier = multipliers[deck.roundNumber - 1];
         String roundText = "";
         switch (deck.roundNumber) {
             case 1:
@@ -128,7 +156,24 @@ public class RideTheBus {
         if (isGameOver) {
             return;
         }
+        if (callbackData.equals("exit")) {
+            int winAmount = currentBet * currentMultiplier;
+            boolean success = userService.payWinnings(userID, winAmount);
 
+            if (success) {
+                int newBalance = userService.getUserBalance(userID);
+                bot.sendMessage("🎉 Вы забрали выигрыш!\n" +
+                                "💎 Выигрыш: " + winAmount + " 🪙\n" +
+                                "💰 Новый баланс: " + newBalance + " 🪙\n\n" +
+                                "Хотите сыграть еще?",
+                        chatId,
+                        keyboardFactory.createGameSelectionKeyboard());
+            } else {
+                bot.sendMessage("❌ Ошибка при выплате выигрыша", chatId, null);
+            }
+            resetGame();
+            return;
+        }
         Card card = deck.dealCard();
         deck.addToTable(card);
         boolean isWin = checkWin(callbackData, card);
@@ -147,16 +192,69 @@ public class RideTheBus {
         }
 
     }
+
     /**
-     *Обработка конца игры
+     * Обработка ставки
+     */
+    public void processBet(String callbackData, TelegramBot bot) {
+        if (betPlaced) {
+            return;
+        }
+
+        try {
+            int bet = 0;
+            if (callbackData.equals("bet_all")) {
+                bet = userService.getUserBalance(userID);
+            } else {
+                bet = Integer.parseInt(callbackData.replace("bet_", ""));
+            }
+
+            if (userService.canPlaceBet(userID, bet)) {
+                if (userService.placeBet(userID, bet)) {
+                    currentBet = bet;
+                    betPlaced = true;
+                    int balance = userService.getUserBalance(userID);
+                    bot.sendMessage("✅ Ставка " + bet + " 🪙 принята!\n💰 Текущий баланс: " + balance + " 🪙\n\nНачинаем игру Ride The Bus!",
+                            chatId, null);
+                    play(bot);
+                } else {
+                    bot.sendMessage("❌ Ошибка при размещении ставки", chatId, null);
+                }
+            } else {
+                int balance = userService.getUserBalance(userID);
+                bot.sendMessage("❌ Недостаточно средств для ставки " + bet + " 🪙\n💰 Ваш баланс: " + balance + " 🪙",
+                        chatId, keyboardFactory.createBetKeyboard());
+            }
+        } catch (NumberFormatException e) {
+            bot.sendMessage("❌ Неверный формат ставки", chatId, null);
+        }
+    }
+
+    /**
+     * Обработка конца игры
      */
     private void handleGameOver(TelegramBot bot, boolean isWinner) {
         if (isWinner) {
-            bot.sendMessage(deck.getTableAsString() + "\nВы прошли все раунды! 🎉\nХотите выбрать другую игру?",
-                    chatId,
-                    keyboardFactory.createGameSelectionKeyboard());
+            int winAmount = currentBet * 10; // Множитель для полной победы
+            boolean success = userService.payWinnings(userID, winAmount);
+
+            if (success) {
+                int newBalance = userService.getUserBalance(userID);
+                bot.sendMessage(deck.getTableAsString() +
+                                "\n🎉 Поздравляем! Вы прошли все раунды!\n" +
+                                "💎 Выигрыш: " + winAmount + " 🪙\n" +
+                                "💰 Новый баланс: " + newBalance + " 🪙\n\n" +
+                                "Хотите сыграть еще?",
+                        chatId,
+                        keyboardFactory.createGameSelectionKeyboard());
+            } else {
+                bot.sendMessage("❌ Ошибка при выплате выигрыша", chatId, null);
+            }
         } else {
-            bot.sendMessage(deck.getTableAsString() + "\nК сожалению, вы проиграли! Хотите сыграть снова?",
+            Card lastCard = deck.table[deck.table.length - 1];
+            bot.sendMessage("❌ Неверно! Карта: " + (lastCard != null ? lastCard.getCard() : "") +
+                            "\n" + deck.getTableAsString() +
+                            "\nК сожалению, вы проиграли! Хотите сыграть снова?",
                     chatId,
                     keyboardFactory.createGameSelectionKeyboard());
         }
