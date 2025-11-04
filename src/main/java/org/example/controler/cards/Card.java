@@ -34,14 +34,16 @@ public class Card {
     public int getValue() {
         return value;
     }
+
     /**
      * Получить масть карты
      */
     public String getSuit() {
         return suit;
     }
+
     /**
-     * Получить предлставление карты как строку
+     * Получить представление карты как строку
      */
     public String getCard() {
         return fullRepresentation;

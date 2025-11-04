@@ -4,58 +4,83 @@ import org.example.controler.cards.Card;
 import org.example.controler.cards.Deck;
 import org.example.controler.db.UserService;
 
-
 /**
  * Класс Реализующий игру в Ride The Bus
  */
-public class RideTheBus {
+public class RideTheBus implements Game{
     private Deck deck;
     private String specialCard;
     private final KeyboardFactory keyboardFactory;
     private String chatId;
     private Long userID;
     private boolean isGameOver;
+    private Card[] table;
+    private int roundNumber;
     private final UserService userService;
-    private boolean isProcessing;
     private boolean betPlaced;
     private int currentBet;
     private int currentMultiplier;
-    private final int[] multipliers = {1, 2, 3, 5, 10};
+    private final int[] multipliers = {1, 2, 3, 5, 8};
 
     public RideTheBus() {
         keyboardFactory = new KeyboardFactory();
         specialCard = "\uD83C\uDCCF";
         isGameOver = false;
-        isProcessing = false;
-        deck = new Deck(4);
+        deck = new Deck();
+        table = new Card[4];
         userService = new UserService();
         currentBet = 0;
         currentMultiplier = 1;
+        roundNumber = 1;
     }
+
     /**
      * Установка пользователя
      */
     public void setUser(Long userId) {
         this.userID = userId;
-        System.out.println("User set: " + userId); // Для отладки
+    }
+
+    /**
+     *Добавление карты на стол
+     */
+    public void addToTable(Card card) {
+        for (int i = 0; i < 4; i++) {
+            if (table[i] == null) {
+                table[i] = card;
+                break;
+            }
+        }
+    }
+
+    /**
+     *Получение карт на столе как строку, а не как массив Card
+     */
+    public String getTableAsString(){
+        String tableAsString = "";
+        for (Card tableCard : table){
+            if (tableCard == null) break;
+            tableAsString += tableCard.getCard();
+        }
+        return tableAsString;
     }
 
     /**
      * Проверка на победу
      */
     private boolean checkWin(String message, Card card) {
-        switch (deck.roundNumber) {
+        switch (roundNumber) {
             case 1:
                 boolean isRed = card.getSuit().equals("♥️") || card.getSuit().equals("♦️");
                 boolean isBlack = card.getSuit().equals("♠️") || card.getSuit().equals("♣️");
                 return (message.equals("red") && isRed) || (message.equals("black") && isBlack);
             case 2:
-                int valeCard1 = deck.table[0].getValue();
+                int valeCard1 = table[0].getValue();
                 int valueCurrent = card.getValue();
                 return ((valueCurrent >= valeCard1 && message.equals("higher")) || (valueCurrent <= valeCard1 && message.equals("lower")));
             case 3:
-                int valueCard1 = deck.table[0].getValue();
-                int valueCard2 = deck.table[1].getValue();
+                int valueCard1 = table[0].getValue();
+                int valueCard2 = table[1].getValue();
                 int currentValue = card.getValue();
                 int min = Math.min(valueCard1, valueCard2);
                 int max = Math.max(valueCard1, valueCard2);
@@ -71,14 +96,13 @@ public class RideTheBus {
 
                 return ((cardSuit.equals("♥️") && message.equals("hearts")) ||
                         (cardSuit.equals("♦️") && message.equals("diamonds")) ||
-                        (cardSuit.equals("♠️") && message.equals("peacks")) ||
+                        (cardSuit.equals("♠️") && message.equals("peaks")) ||
                         (cardSuit.equals("♣️") && message.equals("clubs")));
         }
         return true;
     }
-    /**
-     * Начало игры
-     */
+
+    @Override
     public void startGame(String chatId, TelegramBot bot) {
         this.chatId = chatId;
         int balance = userService.getUserBalance(Long.valueOf(chatId));
@@ -93,32 +117,30 @@ public class RideTheBus {
             play(bot);
         }
     }
+
+    @Override
+    public boolean getIsGameOver(){return isGameOver;}
+
     /**
      * Сброс состояния игры
      */
     private void resetGame() {
-        deck.roundNumber = 1;
-        deck = new Deck(4);
+        roundNumber = 1;
+        deck = new Deck();
         deck.initializeDeck();
         betPlaced = false;
         isGameOver = false;
-        isProcessing = false;
         currentBet = 0;
         currentMultiplier = 1; // Сброс флага обработки
     }
-    /**
-     * Геттер isGameOver
-     */
-    public boolean IsGameOver(){
-        return isGameOver;
-    }
+
     /**
      * Метод реализующий интерфейс во время игры
      */
     private void play(TelegramBot bot) {
-        currentMultiplier = multipliers[deck.roundNumber - 1];
+        currentMultiplier = multipliers[roundNumber - 1];
         String roundText = "";
-        switch (deck.roundNumber) {
+        switch (roundNumber) {
             case 1:
                 roundText = "Раунд 1 \nВыберите цвет:";
                 bot.keyboard = keyboardFactory.keyboardFirstRound();
@@ -140,18 +162,16 @@ public class RideTheBus {
                 break;
 
             case 5:
-                // Игра завершена
                 handleGameOver(bot, true);
                 return;
         }
 
         if (bot.keyboard != null) {
-            bot.sendMessage(roundText + "\n" + deck.getTableAsString() + " " + specialCard, chatId, bot.keyboard);
+            bot.sendMessage(roundText + "\n" + getTableAsString() + " " + specialCard, chatId, bot.keyboard);
         }
     }
-    /**
-     * Метод для обработки выбора пользователя
-     */
+
+    @Override
     public void processUserChoice(String callbackData, TelegramBot bot) {
         if (isGameOver) {
             return;
@@ -175,16 +195,16 @@ public class RideTheBus {
             return;
         }
         Card card = deck.dealCard();
-        deck.addToTable(card);
+        addToTable(card);
         boolean isWin = checkWin(callbackData, card);
 
         if (isWin) {
-            bot.sendMessage(deck.getTableAsString() + "\nПоздравляем, вы выиграли!",chatId,null);
+            bot.sendMessage(getTableAsString() + "\nПоздравляем, вы выиграли!",chatId,null);
 
-            if (deck.roundNumber == 4) {
+            if (roundNumber == 4) {
                 handleGameOver(bot, true);
             } else {
-                deck.roundNumber=deck.roundNumber+1;
+                roundNumber=roundNumber+1;
                 play(bot);
             }
         } else {
@@ -193,9 +213,7 @@ public class RideTheBus {
 
     }
 
-    /**
-     * Обработка ставки
-     */
+    @Override
     public void processBet(String callbackData, TelegramBot bot) {
         if (betPlaced) {
             return;
@@ -240,7 +258,7 @@ public class RideTheBus {
 
             if (success) {
                 int newBalance = userService.getUserBalance(userID);
-                bot.sendMessage(deck.getTableAsString() +
+                bot.sendMessage(getTableAsString() +
                                 "\n🎉 Поздравляем! Вы прошли все раунды!\n" +
                                 "💎 Выигрыш: " + winAmount + " 🪙\n" +
                                 "💰 Новый баланс: " + newBalance + " 🪙\n\n" +
@@ -251,9 +269,9 @@ public class RideTheBus {
                 bot.sendMessage("❌ Ошибка при выплате выигрыша", chatId, null);
             }
         } else {
-            Card lastCard = deck.table[deck.table.length - 1];
+            Card lastCard = table[table.length - 1];
             bot.sendMessage("❌ Неверно! Карта: " + (lastCard != null ? lastCard.getCard() : "") +
-                            "\n" + deck.getTableAsString() +
+                            "\n" + getTableAsString() +
                             "\nК сожалению, вы проиграли! Хотите сыграть снова?",
                     chatId,
                     keyboardFactory.createGameSelectionKeyboard());

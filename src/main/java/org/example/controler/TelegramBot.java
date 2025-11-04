@@ -18,7 +18,7 @@ import java.util.Map;
  * Класс телеграм-бота
  */
 public class TelegramBot extends TelegramLongPollingBot {
-    private Map<String, RideTheBus> activeGames;
+    private Map<String, Game> activeGames;
     private final String botUsername;
     private final String botToken;
     private final MessageHandler messageHandler;
@@ -58,45 +58,62 @@ public class TelegramBot extends TelegramLongPollingBot {
                     game.startGame(chatId, this);
                     return;
                 }
-                if(callbackData.equals("exit")){
-                    RideTheBus game =activeGames.get(chatId);
-                    if(game != null){
-                        game.processUserChoice(callbackData,this);
+
+                if (callbackData.equals("black_jack")) {
+                    activeGames.remove(chatId);
+                    BlackJack game = new BlackJack();
+                    game.setUser(userId);
+                    activeGames.put(chatId, game);
+                    game.startGame(chatId, this);
+                    return;
+                }
+
+                if (callbackData.equals("exit")) {
+                    Game game = activeGames.get(chatId);
+                    if (game != null) {
+                        game.processUserChoice(callbackData, this);
                         return;
                     }
                 }
 
                 if (callbackData.startsWith("bet_")) {
-                    RideTheBus game = activeGames.get(chatId);
+                    Game game = activeGames.get(chatId);
                     if (game != null) {
                         game.processBet(callbackData, this);
                         return;
                     }
                 }
-                if (callbackData.equals("add_balance_500")){
+
+                if (callbackData.equals("add_balance_500")) {
                     Long userID = callbackQuery.getFrom().getId();
-                    user = userService.getOrCreateUser(userID,callbackQuery.getFrom().getUserName());
+                    user = userService.getOrCreateUser(userID, callbackQuery.getFrom().getUserName());
                     KeyboardFactory keyboardFactory = new KeyboardFactory();
-                    boolean success = userService.payWinnings(userID,500);
+                    boolean success = userService.payWinnings(userID, 500);
 
                     if (success) {
                         int newBalance = userService.getUserBalance(userID);
-                        sendMessage(" Баланс пополнен на 500 \n Новый баланс: " + newBalance,
-                                chatId, keyboardFactory.createGameSelectionKeyboard());
+                        sendMessage(
+                                "Баланс пополнен на 500\nНовый баланс: " + newBalance,
+                                chatId,
+                                keyboardFactory.createGameSelectionKeyboard()
+                        );
                     } else {
-                        sendMessage(" Ошибка при пополнении баланса",
-                                chatId, keyboardFactory.createGameSelectionKeyboard());
+                        sendMessage(
+                                "Ошибка при пополнении баланса",
+                                chatId,
+                                keyboardFactory.createGameSelectionKeyboard()
+                        );
                     }
                     return;
                 }
 
-                RideTheBus lateGame = activeGames.get(chatId);
-                if (lateGame != null) {
-                    if (lateGame.IsGameOver()) {
+                Game currentGame = activeGames.get(chatId);
+                if (currentGame != null) {
+                    if (currentGame.getIsGameOver()) {
                         activeGames.remove(chatId);
                         return;
                     }
-                    lateGame.processUserChoice(callbackData, this);
+                    currentGame.processUserChoice(callbackData, this);
                     return;
                 }
             }
@@ -113,12 +130,11 @@ public class TelegramBot extends TelegramLongPollingBot {
                     message.setChatId(chatId);
                     message.setText("Выберите игру:");
                     message.setReplyMarkup(keyboardFactory.createGameSelectionKeyboard());
-
                     sender(message);
                 } else {
-                    String responseText = messageHandler.handleMessage(text, userName,chatId);
+                    String responseText = messageHandler.handleMessage(text, userName, chatId);
                     SendMessage message = new SendMessage();
-                    message.setChatId(chatId);
+                    message.setChatId(chatId.toString());
                     message.setText(responseText);
                     sender(message);
                 }
@@ -127,13 +143,18 @@ public class TelegramBot extends TelegramLongPollingBot {
             System.err.println("Произошла ошибка при обработке обновления: " + e.getMessage());
         }
     }
-    public void sendMessage(String text, String chatID, InlineKeyboardMarkup markup){
+
+    /**
+     * Отправка сообщения с текстом и клавиатурой
+     */
+    public void sendMessage(String text, String chatID, InlineKeyboardMarkup markup) {
         SendMessage message = new SendMessage();
         message.setChatId(chatID);
         message.setText(text);
         message.setReplyMarkup(markup);
         sender(message);
     }
+
     /**
      * Отправляет сообщение
      */
@@ -143,13 +164,12 @@ public class TelegramBot extends TelegramLongPollingBot {
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
      * Метод возвращает логин пользователя из сообщения
      */
-    public String getUsername(Update update){
+    public String getUsername(Update update) {
         Chat chat = update.getMessage().getChat();
         String userName = (chat != null) ? chat.getFirstName() : "Неизвестный пользователь";
         return userName;

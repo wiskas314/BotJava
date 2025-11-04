@@ -9,14 +9,14 @@ import java.util.List;
 
 
 /**
- * тестовый класс содержит тесты для метод создания клавиатур
+ * Тестовый класс содержит тесты для метод создания клавиатур
  */
 class KeyBoardFactoryTest {
 
     private KeyboardFactory keyboardFactory;
 
     /**
-     * инициализация тестового окржуения перед каждым тестом
+     * Инициализация тестового окржуения перед каждым тестом
      */
     @BeforeEach
     void setUp() {
@@ -24,7 +24,7 @@ class KeyBoardFactoryTest {
     }
 
     /**
-     * тестируем создание клавиатуры для выбора игры
+     * Тестируем создание клавиатуры для выбора игры
      */
     @Test
     void testCreateGameSelectionKeyboard() {
@@ -45,7 +45,7 @@ class KeyBoardFactoryTest {
     }
 
     /**
-     * тестируем создание клавиатуры для первого раунда
+     * Тестируем создание клавиатуры для первого раунда
      */
     @Test
     void testKeyboardFirstRound() {
@@ -72,7 +72,7 @@ class KeyBoardFactoryTest {
     }
 
     /**
-     * тестируем создание клавиатуры для второго раунда
+     * Тестируем создание клавиатуры для второго раунда
      */
     @Test
     void testCreateHigherLowerKeyboard() {
@@ -97,7 +97,7 @@ class KeyBoardFactoryTest {
     }
 
     /**
-     * тестируем создание клавиатуры для третьего раунда
+     * Тестируем создание клавиатуры для третьего раунда
      */
     @Test
     void testCreateRangeKeyboard() {
@@ -122,7 +122,7 @@ class KeyBoardFactoryTest {
     }
 
     /**
-     * тестирование четвертой клавитуры
+     * Тестирование четвертой клавитуры
      */
     @Test
     void testCreateSuitGuessKeyboard() {
@@ -160,7 +160,7 @@ class KeyBoardFactoryTest {
     }
     /**
      * Тестирует создание клавиатуры с пустым массивом кнопок
-     * Ожидается что клавиатура будет создана но без строк
+     * Ожидается, что клавиатура будет создана, но без строк
      */
     @Test
     void testCreateKeyboard_WithEmptyButtonsArray() {
