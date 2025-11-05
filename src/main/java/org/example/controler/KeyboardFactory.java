@@ -8,11 +8,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * класс отвечающий за создание клавиатур
+ * Класс отвечающий за создание клавиатур
  */
 public class KeyboardFactory {
+
     /**
-     * Создает клавиатуру для выбора игры
+     * Метод создания клавиатуры с заданными кнопками
      */
     public InlineKeyboardMarkup createKeyboard(String[][][] buttonRows) {
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
@@ -36,9 +37,13 @@ public class KeyboardFactory {
         return keyboard;
 
     }
+
+    /**
+     * Создает клавиатуру для выбора игры
+     */
     public InlineKeyboardMarkup createGameSelectionKeyboard(){
         String[][][] buttons ={
-                {{"Ride the Bus", "ride_the_bus"}}
+                {{"Ride the Bus", "ride_the_bus"}, {"Black Jack", "black_jack"}}
         };
         return  createKeyboard(buttons);
     }
@@ -85,6 +90,16 @@ public class KeyboardFactory {
     }
 
     /**
+     * Создает клаивиатуру для игры Black Jack
+     */
+    public InlineKeyboardMarkup createHitOrStandKeyboard(){
+        String[][][] buttons = {
+                {{"Остановиться", "stand"}, {"Взять", "hit"}}
+        };
+        return createKeyboard(buttons);
+    }
+
+    /**
      * Создает клаивиатуру для ставок
      */
     public InlineKeyboardMarkup createBetKeyboard(){
@@ -97,7 +112,7 @@ public class KeyboardFactory {
     }
 
     /**
-     *создает клавиатуру для пополнения баланса
+     *Создает клавиатуру для пополнения баланса
      */
     public InlineKeyboardMarkup createReplenishKeyboard(){
         String[][][] buttons ={
