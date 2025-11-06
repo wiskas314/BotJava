@@ -172,4 +172,16 @@ class KeyBoardFactoryTest {
         Assert.assertNotNull(keyboard.getKeyboard());
         Assert.assertTrue(keyboard.getKeyboard().isEmpty());
     }
+
+    /**
+     * тестируем создание клавиатуры с одной конпкой для пополнения баланса
+     */
+    @Test
+    void createReplenishKeyboard_HasOneButton() {
+        InlineKeyboardMarkup keyboard = keyboardFactory.createReplenishKeyboard();
+        Assert.assertEquals(1, keyboard.getKeyboard().size());
+        Assert.assertEquals(1, keyboard.getKeyboard().get(0).size());
+        Assert.assertEquals(" Пополнить баланс +500", keyboard.getKeyboard().get(0).get(0).getText());
+        Assert.assertEquals("add_balance_500", keyboard.getKeyboard().get(0).get(0).getCallbackData());
+    }
 }

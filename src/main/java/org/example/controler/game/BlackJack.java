@@ -1,5 +1,7 @@
-package org.example.controler;
+package org.example.controler.game;
 
+import org.example.controler.KeyboardFactory;
+import org.example.controler.TelegramBot;
 import org.example.controler.cards.Card;
 import org.example.controler.cards.Deck;
 import org.example.controler.db.UserService;

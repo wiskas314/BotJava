@@ -1,4 +1,6 @@
-package org.example.controler;
+package org.example.controler.game;
+
+import org.example.controler.TelegramBot;
 
 /**
  * Интерфейс для Black Jack и Ride the Bus

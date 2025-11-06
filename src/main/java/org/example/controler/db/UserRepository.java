@@ -58,26 +58,6 @@ public class UserRepository {
         return null;
     }
 
-    /**
-     * Обновление баланса пользователя
-     */
-     boolean updateBalance(Long chatId, int newBalance) {
-        String sql = "UPDATE users SET balance = ?, updated_at = CURRENT_TIMESTAMP WHERE chat_id = ?";
-
-        try (Connection conn = dbConfig.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, newBalance);
-            pstmt.setLong(2, chatId);
-
-            int affectedRows = pstmt.executeUpdate();
-            return affectedRows > 0;
-
-        } catch (SQLException e) {
-            System.err.println("Ошибка обновления баланса: " + e.getMessage());
-            return false;
-        }
-    }
 
     /**
      * Изменение баланса на указанную сумму (положительную или отрицательную)
@@ -100,12 +80,6 @@ public class UserRepository {
         }
     }
 
-    /**
-     * Проверка существования пользователя
-     */
-     boolean userExists(Long chatId) {
-        return getUserByChatId(chatId) != null;
-    }
 
     /**
      * Проверка достаточности баланса
