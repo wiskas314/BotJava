@@ -2,27 +2,37 @@ package org.example.controler;
 
 
 import org.apache.commons.lang3.StringUtils;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.example.controler.db.UserService;
 
 /**
- * класс для обрабатывания входящих сообщений и генерации ответа
+ * Класс для обрабатывания входящих сообщений и генерации ответа
  */
 public class MessageHandler {
+    private final UserService userService;
+
+
+    public MessageHandler() {
+        this.userService = new UserService();
+    }
+
     /**
-     * обрабатывает текст входящего сообщения и возвращает текстовый ответ.
+     * Обрабатывает текст входящего сообщения и возвращает текстовый ответ.
      */
-    public String handleMessage(String message, String userName) {
+    public String handleMessage(String message, String userName,Long chatId) {
         if (StringUtils.isNotEmpty(message)) {
             switch (message) {
                 case "/start":
-                    return "Привет, " + userName + "! Я бот, готовый помогать." +
+                    return "Привет, " + userName + "! Я бот, готовый помочь скоротать время." +
                             "\nЧтобы узнать, что я умею, введи /help";
                 case "/help":
                     return """
                 Вот список доступных команд:
                 /start - Начать общение с ботом
                 /help - Получить список команд
-                /play - Вызывает меню с выбором игр """;
+                /play - Вызывает меню с выбором игр
+                 /balance - Показывает ваш баланс""";
+                case "/balance":
+                    return "Ваш баланс " + String.valueOf(userService.getUserBalance(chatId));
                 default:
                     return echoMessage(message);
             }
@@ -31,14 +41,6 @@ public class MessageHandler {
         }
     }
 
-    /**
-     * вызывает клавиатуру с выбором игры
-     */
-    public SendMessage addKeybord(String chatId){
-        KeyboardFactory keyboardFactory = new KeyboardFactory();
-        SendMessage keyboard = keyboardFactory.createGameSelectionKeyboard(chatId);
-        return  keyboard;
-    }
     /**
      * Генерируется эхо-сообщение пользователю
      */

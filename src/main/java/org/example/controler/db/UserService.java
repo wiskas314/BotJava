@@ -33,13 +33,6 @@ public class UserService {
     }
 
     /**
-     * Обновление баланса
-     */
-    public boolean updateBalance(Long chatId, int newBalance) {
-        return userRepository.updateBalance(chatId, newBalance);
-    }
-
-    /**
      * Изменение баланса на сумму
      */
     public boolean changeBalance(Long chatId, int amount) {
