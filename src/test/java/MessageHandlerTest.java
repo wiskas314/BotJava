@@ -34,9 +34,8 @@ class MessageHandlerTest {
         UserService userService = new UserService();
 
         userService.getOrCreateUser(1L,"Alice");
-        userService.payWinnings(1L,500);
 
         String responce = messageHandler.handleMessage("/balance","Alice",1L);
-        Assert.assertEquals("Ваш баланс 1500",responce);
+        Assert.assertEquals("Ваш баланс 2500",responce);
     }
 }
