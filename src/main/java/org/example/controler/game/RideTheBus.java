@@ -127,13 +127,8 @@ public class RideTheBus implements Game {
      * Сброс состояния игры
      */
     private void resetGame() {
-        roundNumber = 1;
-        deck = new Deck();
-        deck.initializeDeck();
-        betPlaced = false;
-        isGameOver = false;
-        currentBet = 0;
-        currentMultiplier = 1; // Сброс флага обработки
+        isGameOver = true;
+
     }
 
     /**
@@ -184,6 +179,7 @@ public class RideTheBus implements Game {
 
             if (success) {
                 int newBalance = userService.getUserBalance(userID);
+                userService.changeWinAndEarnedRideTheBus(userID, winAmount-currentBet);
                 bot.sendMessage("🎉 Вы забрали выигрыш!\n" +
                                 "💎 Выигрыш: " + winAmount + " 🪙\n" +
                                 "💰 Новый баланс: " + newBalance + " 🪙\n\n" +
@@ -260,6 +256,7 @@ public class RideTheBus implements Game {
 
             if (success) {
                 int newBalance = userService.getUserBalance(userID);
+                userService.changeWinAndEarnedRideTheBus(userID, currentBet * 9);
                 bot.sendMessage(getTableAsString() +
                                 "\n🎉 Поздравляем! Вы прошли все раунды!\n" +
                                 "💎 Выигрыш: " + winAmount + " 🪙\n" +
@@ -271,6 +268,7 @@ public class RideTheBus implements Game {
                 bot.sendMessage("❌ Ошибка при выплате выигрыша", chatId, null);
             }
         } else {
+            userService.changeLossesAndLostRideTheBus(userID, currentBet);
             Card lastCard = table[table.length - 1];
             bot.sendMessage("❌ Неверно! Карта: " + (lastCard != null ? lastCard.getCard() : "") +
                             "\n" + getTableAsString() +
