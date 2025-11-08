@@ -37,7 +37,7 @@ class KeyBoardFactoryTest {
         Assert.assertEquals(1, keyboard.getKeyboard().size());
 
         List<InlineKeyboardButton> firstRow = keyboard.getKeyboard().get(0);
-        Assert.assertEquals(1, firstRow.size());
+        Assert.assertEquals(2, firstRow.size());
 
         InlineKeyboardButton button = firstRow.get(0);
         Assert.assertEquals("Ride the Bus", button.getText());
@@ -85,7 +85,7 @@ class KeyBoardFactoryTest {
         Assert.assertEquals(1, keyboard.getKeyboard().size());
 
         List<InlineKeyboardButton> firstRow = keyboard.getKeyboard().get(0);
-        Assert.assertEquals(2, firstRow.size());
+        Assert.assertEquals(3, firstRow.size());
 
         InlineKeyboardButton firstButton = firstRow.get(0);
         Assert.assertEquals("📈 Выше", firstButton.getText());
@@ -94,6 +94,10 @@ class KeyBoardFactoryTest {
         InlineKeyboardButton secondButton = firstRow.get(1);
         Assert.assertEquals("📉 Ниже", secondButton.getText());
         Assert.assertEquals("lower", secondButton.getCallbackData());
+
+        InlineKeyboardButton thirdButtom =  firstRow.get(2);
+        Assert.assertEquals("Сохранить выигранное и выйти", thirdButtom.getText());
+        Assert.assertEquals("exit",thirdButtom.getCallbackData());
     }
 
     /**
@@ -110,7 +114,7 @@ class KeyBoardFactoryTest {
         Assert.assertEquals(1, keyboard.getKeyboard().size());
 
         List<InlineKeyboardButton> firstRow = keyboard.getKeyboard().get(0);
-        Assert.assertEquals(2, firstRow.size());
+        Assert.assertEquals(3, firstRow.size());
 
         InlineKeyboardButton firstButton = firstRow.get(0);
         Assert.assertEquals("📥 Внутри диапазона", firstButton.getText());
@@ -119,6 +123,10 @@ class KeyBoardFactoryTest {
         InlineKeyboardButton secondButton = firstRow.get(1);
         Assert.assertEquals("📤 Вне диапазона", secondButton.getText());
         Assert.assertEquals("outside", secondButton.getCallbackData());
+
+        InlineKeyboardButton thirdButtom =  firstRow.get(2);
+        Assert.assertEquals("Сохранить выигранное и выйти", thirdButtom.getText());
+        Assert.assertEquals("exit",thirdButtom.getCallbackData());
     }
 
     /**
@@ -148,7 +156,7 @@ class KeyBoardFactoryTest {
 
 
         List<InlineKeyboardButton> secondRow = keyboard.getKeyboard().get(1);
-        Assert.assertEquals(2, secondRow.size());
+        Assert.assertEquals(3, secondRow.size());
 
         InlineKeyboardButton secondRowFirstButton = secondRow.get(0);
         Assert.assertEquals("♣ Трефы", secondRowFirstButton.getText());
@@ -157,6 +165,10 @@ class KeyBoardFactoryTest {
         InlineKeyboardButton secondRowSecondButton = secondRow.get(1);
         Assert.assertEquals("♠ Пики", secondRowSecondButton.getText());
         Assert.assertEquals("peaks", secondRowSecondButton.getCallbackData());
+
+        InlineKeyboardButton thirdButtom =  secondRow.get(2);
+        Assert.assertEquals("Сохранить выигранное и выйти", thirdButtom.getText());
+        Assert.assertEquals("exit",thirdButtom.getCallbackData());
     }
     /**
      * Тестирует создание клавиатуры с пустым массивом кнопок
