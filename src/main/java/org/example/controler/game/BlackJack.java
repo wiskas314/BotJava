@@ -259,6 +259,7 @@ public class BlackJack implements Game {
             if (playerScore == 21 && playerHand[2] == null) {
                 winAmount = (int) Math.floor(currentBet * 1.5);
                 userService.changeWinsAndEarnedBlackJack(userID, (int)Math.floor(currentBet * 0.5));
+                userService.changeEarned(userID,(int)Math.floor(currentBet * 0.5));
                 resultMessage = "🎉 **Блэкджек!** Вы выиграли с натуральной 21!\n" +
                         "💎 Выигрыш: " + winAmount + " 🪙\n";
             } else if (playerScore == dealerScore) {
@@ -269,6 +270,7 @@ public class BlackJack implements Game {
             } else {
                 winAmount = currentBet * 2;
                 userService.changeWinsAndEarnedBlackJack(userID, currentBet);
+                userService.changeEarned(userID,currentBet);
                 resultMessage = "🎉 **Вы выиграли!**\n" +
                         "💎 Выигрыш: " + winAmount + " 🪙\n";
             }

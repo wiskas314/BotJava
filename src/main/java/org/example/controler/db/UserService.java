@@ -1,5 +1,7 @@
 package org.example.controler.db;
 
+import java.util.List;
+
 /**
  * Сервис для работы с пользователями
  */
@@ -32,6 +34,27 @@ public class UserService {
         return user!=null?user.getBalance():0;
     }
 
+    /**
+     * Получение топа игроков по параметру earned
+     */
+    public List<User> getTopPlayersByEarned(int limit) {
+        return userRepository.getTopPlayersByEarned(limit);
+    }
+
+    /**
+     * Получение позиции игрока в топе по earned
+     */
+    public int getPlayerRankByEarned(Long chatId) {
+        return userRepository.getPlayerRankByEarned(chatId);
+    }
+
+    /**
+     *получение того сколько заработал пользователь
+     */
+    public int getUserEarned(Long chatId){
+        User user = getUser(chatId);
+        return user!=null?user.getEarned():0;
+    }
     /**
      * Получение кол-ва побед Black Jack
      */
@@ -102,6 +125,11 @@ public class UserService {
     public boolean changeBalance(Long chatId, int amount) {
         return userRepository.changeBalance(chatId, amount);
     }
+
+    /**
+     * иземенение общего заработка
+     */
+    public boolean changeEarned(Long chatId, int amount){return userRepository.changeEarned(chatId, amount);}
 
     /**
      * Изменение кол-ва побед и выигрыша для Black Jack

@@ -156,7 +156,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     message.setText("Выберите по какой игре показать статистику:");
                     message.setReplyMarkup(keyboardFactory.createSelfStatFor());
                     sender(message);
-                } else {
+                }else {
                     String responseText = messageHandler.handleMessage(text, userName, chatId);
                     SendMessage message = new SendMessage();
                     message.setChatId(chatId.toString());
