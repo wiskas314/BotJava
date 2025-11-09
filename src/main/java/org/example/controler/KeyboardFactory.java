@@ -120,4 +120,11 @@ public class KeyboardFactory {
         };
         return createKeyboard(buttons);
     }
+    public InlineKeyboardMarkup createSelfStatFor(){
+        String[][][] buttons = {
+                {{"Статистика Black Jack", "black_jack_stat"}, {"Статистика Ride The Bus", "ride_the_bus_stat"}}
+        };
+        return createKeyboard(buttons);
+    }
+
 }

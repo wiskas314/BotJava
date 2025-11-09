@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * класс отвечающий за инициализацию базы данных, создание необходимых таблиц и предоставление подключений к БД
+ * Класс отвечающий за инициализацию базы данных, создание необходимых таблиц и предоставление подключений к БД
  */
 public class DBConfig {
     private static final String DB_URL="jdbc:sqlite:users.db";
@@ -19,9 +19,9 @@ public class DBConfig {
     }
 
     /**
-     *возвращает единственный экземпляр класса
+     *Возвращает единственный экземпляр класса
      */
-    public static DBConfig getInstance() {
+    protected static DBConfig getInstance() {
         if (instance == null) {
             instance = new DBConfig();
         }
@@ -29,7 +29,7 @@ public class DBConfig {
     }
 
     /**
-     * инициализирует базу данных
+     * Инициализирует базу данных
      */
     private void initializeDB() {
         try (Connection conn = getConnection()) {
@@ -39,10 +39,22 @@ public class DBConfig {
                     chat_id INTEGER PRIMARY KEY,
                     username TEXT NOT NULL,
                     balance INTEGER DEFAULT 1000,
+                    
+                    bjWins INTEGER DEFAULT 0,
+                    bjLosses INTEGER DEFAULT 0,
+                    bjEarned INTEGER DEFAULT 0,
+                    bjLost INTEGER DEFAULT 0,
+                    
+                    rtbWins INTEGER DEFAULT 0,
+                    rtbLosses INTEGER DEFAULT 0,
+                    rtbEarned INTEGER DEFAULT 0,
+                    rtbLost INTEGER DEFAULT 0,
+                    
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
-            """);
+            )
+        """);
+
             System.out.println("База данных успешно инициализирована");
         } catch (SQLException e) {
             System.err.println("Ошибка инициализации базы данных: " + e.getMessage());
@@ -50,9 +62,9 @@ public class DBConfig {
     }
 
     /**
-     * создает и возвращает подключение к бд
+     * Создает и возвращает подключение к бд
      */
-    public Connection getConnection() throws SQLException {
+    protected Connection getConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL);
     }
 
