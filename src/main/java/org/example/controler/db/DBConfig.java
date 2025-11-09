@@ -39,6 +39,7 @@ public class DBConfig {
                     chat_id INTEGER PRIMARY KEY,
                     username TEXT NOT NULL,
                     balance INTEGER DEFAULT 1000,
+                    earned INTEGER DEFAULT 0,
                     
                     bjWins INTEGER DEFAULT 0,
                     bjLosses INTEGER DEFAULT 0,

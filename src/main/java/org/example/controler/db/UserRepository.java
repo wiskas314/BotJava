@@ -2,6 +2,8 @@ package org.example.controler.db;
 
 import java.sql.SQLException;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class UserRepository {
@@ -18,7 +20,8 @@ public class UserRepository {
           INSERT OR IGNORE INTO users (
             chat_id, 
             username, 
-            balance, 
+            balance,
+            earned, 
             bjWins, 
             bjLosses, 
             bjEarned, 
@@ -28,7 +31,7 @@ public class UserRepository {
             rtbEarned, 
             rtbLost
           ) 
-          VALUES (?, ?, 1000, 0, 0, 0, 0, 0, 0, 0, 0)
+          VALUES (?, ?, 1000, 0, 0, 0, 0, 0, 0, 0, 0, 0)
           """;
 
         try (Connection conn = dbConfig.getConnection();
@@ -52,7 +55,7 @@ public class UserRepository {
      */
     protected User getUserByChatId(Long chatId) {
          String sql = """
-        SELECT chat_id, username, balance,
+        SELECT chat_id, username, balance,earned,
                bjWins, bjLosses, bjEarned, bjLost,
                rtbWins, rtbLosses, rtbEarned, rtbLost
         FROM users WHERE chat_id = ?
@@ -69,6 +72,7 @@ public class UserRepository {
                          rs.getLong("chat_id"),
                          rs.getString("username"),
                          rs.getInt("balance"),
+                         rs.getInt("earned"),
                          rs.getInt("bjWins"),
                          rs.getInt("bjLosses"),
                          rs.getInt("bjEarned"),
@@ -106,6 +110,95 @@ public class UserRepository {
             System.err.println("Ошибка изменения баланса: " + e.getMessage());
             return false;
         }
+    }
+    /**
+     * Изменение заработанного на указанную сумму
+     */
+    protected boolean changeEarned(Long chatId, int amount) {
+        String sql = "UPDATE users SET earned = earned + ?, updated_at = CURRENT_TIMESTAMP WHERE chat_id = ?";
+
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, amount);
+            pstmt.setLong(2, chatId);
+
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
+
+        } catch (SQLException e) {
+            System.err.println("Ошибка изменения заработанного: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Получение топа игроков по параметру earned
+     */
+    protected List<User> getTopPlayersByEarned(int limit){
+        String sql = """
+        SELECT chat_id, username, balance, earned,
+               bjWins, bjLosses, bjEarned, bjLost,
+               rtbWins, rtbLosses, rtbEarned, rtbLost
+        FROM users 
+        WHERE earned > 0 
+        ORDER BY earned DESC 
+        LIMIT ?
+    """;
+
+        List<User> topPlayers = new ArrayList<>();
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, limit);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                User user = new User(
+                        rs.getLong("chat_id"),
+                        rs.getString("username"),
+                        rs.getInt("balance"),
+                        rs.getInt("earned"),
+                        rs.getInt("bjWins"),
+                        rs.getInt("bjLosses"),
+                        rs.getInt("bjEarned"),
+                        rs.getInt("bjLost"),
+                        rs.getInt("rtbWins"),
+                        rs.getInt("rtbLosses"),
+                        rs.getInt("rtbEarned"),
+                        rs.getInt("rtbLost")
+                );
+                topPlayers.add(user);
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка получения топа игроков: " + e.getMessage());
+        }
+        return topPlayers;
+    }
+
+    /**
+     * Получение позиции игрока в топе по earned
+     */
+    protected int getPlayerRankByEarned(Long chatId) {
+        String sql = """
+        SELECT COUNT(*) + 1 as rank
+        FROM users u1
+        WHERE u1.earned > (SELECT earned FROM users WHERE chat_id = ?)
+    """;
+
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setLong(1, chatId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt("rank");
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка получения позиции игрока: " + e.getMessage());
+        }
+        return -1; // Ошибка
     }
 
     /**

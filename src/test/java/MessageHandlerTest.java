@@ -36,6 +36,6 @@ class MessageHandlerTest {
         userService.getOrCreateUser(1L,"Alice");
 
         String responce = messageHandler.handleMessage("/balance","Alice",1L);
-        Assert.assertEquals("Ваш баланс 2500",responce);
+        Assert.assertEquals("Ваш баланс 1000",responce);
     }
 }

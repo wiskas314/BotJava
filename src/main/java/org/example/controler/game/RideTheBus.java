@@ -180,6 +180,7 @@ public class RideTheBus implements Game {
             if (success) {
                 int newBalance = userService.getUserBalance(userID);
                 userService.changeWinAndEarnedRideTheBus(userID, winAmount-currentBet);
+                userService.changeEarned(userID,winAmount-currentBet);
                 bot.sendMessage("🎉 Вы забрали выигрыш!\n" +
                                 "💎 Выигрыш: " + winAmount + " 🪙\n" +
                                 "💰 Новый баланс: " + newBalance + " 🪙\n\n" +
@@ -257,6 +258,7 @@ public class RideTheBus implements Game {
             if (success) {
                 int newBalance = userService.getUserBalance(userID);
                 userService.changeWinAndEarnedRideTheBus(userID, currentBet * 9);
+                userService.changeEarned(userID, currentBet * 9);
                 bot.sendMessage(getTableAsString() +
                                 "\n🎉 Поздравляем! Вы прошли все раунды!\n" +
                                 "💎 Выигрыш: " + winAmount + " 🪙\n" +

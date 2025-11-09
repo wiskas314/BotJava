@@ -7,6 +7,7 @@ public class User {
     private final Long chatId;
     private final String username;
     private int balance;
+    private int earned;
 
     private int bjWins;
     private int bjLosses;
@@ -18,13 +19,15 @@ public class User {
     private int rtbEarned;
     private int rtbLost;
 
+
     /**
      * Конструктор класса
      */
-    public User(long chatId, String username, int balance, int bjWins, int bjLosses, int bjEarned, int bjLost, int rtbWins, int rtbLosses, int rtbEarned, int rtbLost) {
+    public User(long chatId, String username, int balance, int earned, int bjWins, int bjLosses, int bjEarned, int bjLost, int rtbWins, int rtbLosses, int rtbEarned, int rtbLost) {
         this.chatId = chatId;
         this.username = username;
         this.balance = balance;
+        this.earned = earned;
 
         this.bjWins = bjWins;
         this.bjLosses = bjLosses;
@@ -50,6 +53,11 @@ public class User {
      *Возвращает баланс
      */
     protected int getBalance() { return balance; }
+
+    /**
+     * возвращает сколько всего заработал
+     */
+    public int getEarned(){return earned;}
 
     /**
      * Возвращает кол-во побед Black Jack

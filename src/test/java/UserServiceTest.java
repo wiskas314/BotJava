@@ -1,20 +1,28 @@
+import org.example.controler.db.DBConfig;
 import org.example.controler.db.User;
+import org.example.controler.db.UserRepository;
 import org.example.controler.db.UserService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import  org.junit.jupiter.api.Assertions;
+
+import java.sql.Connection;
+import java.sql.Statement;
 
 /**
  * тестовый класс для проверки функциональности сервиса пользователей
  */
 public class UserServiceTest {
+
+
     /**
      * тестирование полного цикла функциональности сервиса пользователей
      */
     @Test
     void testUserServiceFunctionality() {
         UserService userService = new UserService();
-
 
         User user = userService.getOrCreateUser(99999L, "test_user_999");
         Assertions.assertNotNull(user);
@@ -44,4 +52,7 @@ public class UserServiceTest {
         boolean winningsPaid = userService.payWinnings(99999L, 200);
         Assertions.assertTrue(winningsPaid);
     }
+
+
+
 }
