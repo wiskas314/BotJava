@@ -50,7 +50,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                 String chatId = callbackQuery.getMessage().getChatId().toString();
                 Long userId = callbackQuery.getFrom().getId();
                 String callbackData = callbackQuery.getData();
-
                 userService.getOrCreateUser(userId, callbackQuery.getFrom().getUserName());
 
                 if (callbackData.equals("ride_the_bus")) {
@@ -69,6 +68,22 @@ public class TelegramBot extends TelegramLongPollingBot {
                     activeGames.put(chatId, game);
                     game.startGame(chatId, this);
                     return;
+                }
+
+                if (callbackData.equals("black_jack_stat")) {
+                    String text = "Количество побед - поражений: " + String.valueOf(userService.getBjWins(userId)) + "-" +
+                            String.valueOf(userService.getBjLosses(userId)) + "\n" +
+                            "Выиграно-проиграно:  " + String.valueOf(userService.getBjEarned(userId)) + "-" +
+                            String.valueOf(userService.getBjLost(userId));
+                    sendMessage(text, chatId, null);
+                }
+
+                if (callbackData.equals("ride_the_bus_stat")) {
+                    String text = "Количество побед - поражений:  " + String.valueOf(userService.getRtbWins(userId)) + "-" +
+                            String.valueOf(userService.getRtbLosses(userId)) + "\n" +
+                            "Выиграно-проиграно:  " + String.valueOf(userService.getRtbEarned(userId)) + "-" +
+                            String.valueOf(userService.getRtbLost(userId));
+                    sendMessage(text, chatId, null);
                 }
 
                 if (callbackData.equals("exit")) {
@@ -133,6 +148,13 @@ public class TelegramBot extends TelegramLongPollingBot {
                     message.setChatId(chatId);
                     message.setText("Выберите игру:");
                     message.setReplyMarkup(keyboardFactory.createGameSelectionKeyboard());
+                    sender(message);
+                } else if (text.equals("/statistic")) {
+                    KeyboardFactory keyboardFactory = new KeyboardFactory();
+                    SendMessage message = new SendMessage();
+                    message.setChatId(chatId);
+                    message.setText("Выберите по какой игре показать статистику:");
+                    message.setReplyMarkup(keyboardFactory.createSelfStatFor());
                     sender(message);
                 } else {
                     String responseText = messageHandler.handleMessage(text, userName, chatId);

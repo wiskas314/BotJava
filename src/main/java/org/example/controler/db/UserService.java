@@ -33,11 +33,95 @@ public class UserService {
     }
 
     /**
+     * Получение кол-ва побед Black Jack
+     */
+    public int getBjWins(Long chatId) {
+        User user= getUser(chatId);
+        return user!=null?user.getBjWins():0;
+    }
+
+    /**
+     * Получение кол-ва поражений Black Jack
+     */
+    public int getBjLosses(Long chatId) {
+        User user= getUser(chatId);
+        return user!=null?user.getBjLosses():0;
+    }
+
+    /**
+     * Получение общего выигрыша Black Jack
+     */
+    public int getBjEarned(Long chatId) {
+        User user= getUser(chatId);
+        return user!=null?user.getBjEarned():0;
+    }
+
+    /**
+     * Получение общего проигрыша Black Jack
+     */
+    public int getBjLost(Long chatId) {
+        User user= getUser(chatId);
+        return user!=null?user.getBjLost():0;
+    }
+
+    /**
+     * Получение кол-ва побед Ride the Bus
+     */
+    public int getRtbWins(Long chatId) {
+        User user= getUser(chatId);
+        return user!=null?user.getRtbWins():0;
+    }
+
+    /**
+     * Получение кол-ва поражений Ride the Bus
+     */
+    public int getRtbLosses(Long chatId) {
+        User user= getUser(chatId);
+        return user!=null?user.getRtbLosses():0;
+    }
+
+    /**
+     * Получение общего выигрыша Ride the Bus
+     */
+    public int getRtbEarned(Long chatId) {
+        User user= getUser(chatId);
+        return user!=null?user.getRtbEarned():0;
+    }
+
+    /**
+     * Получение общего проигрыша Ride the Bus
+     */
+    public int getRtbLost(Long chatId) {
+        User user= getUser(chatId);
+        return user!=null?user.getRtbLost():0;
+    }
+
+    /**
      * Изменение баланса на сумму
      */
     public boolean changeBalance(Long chatId, int amount) {
         return userRepository.changeBalance(chatId, amount);
     }
+
+    /**
+     * Изменение кол-ва побед и выигрыша для Black Jack
+     */
+    public boolean changeWinsAndEarnedBlackJack(Long chatId, int amount){return userRepository.changeWinsAndEarnedBlackJack(chatId, amount);}
+
+    /**
+     * Изменение кол-ва поражений и проигрыша для Black Jack
+     */
+    public boolean changeLossesAndLostBlackJack(Long chatId, int amount){return userRepository.changeLossesAndLostBlackJack(chatId, amount);}
+
+    /**
+     * Изменение кол-ва побед и выигрыша для Ride the Bus
+     */
+    public boolean changeWinAndEarnedRideTheBus(Long chatId, int amount){return userRepository.changeWinAndEarnedRideTheBus(chatId, amount);}
+
+    /**
+     * Изменение кол-ва поражений и проигрыша для Ride the Bus
+     */
+    public boolean changeLossesAndLostRideTheBus(Long chatId, int amount){return userRepository.changeLossesAndLostRideTheBus(chatId, amount);}
 
     /**
      * Проверка достаточности баланса для ставки

@@ -81,16 +81,7 @@ public class BlackJack implements Game {
      * Сброс состояния игры (включая ставки)
      */
     private void resetGame() {
-        deck = new Deck();
-        deck.initializeDeck();
-        playerScore = 0;
-        dealerScore = 0;
-        isGameOver = false;
-        isPlayerTurn = true;
-        currentBet = 0;
-        betPlaced = false;
-        dealerHand = new Card[5];
-        playerHand = new Card[5];
+        isGameOver = true;
     }
 
     /**
@@ -136,11 +127,14 @@ public class BlackJack implements Game {
         for (Card card : hand) {
             if (card != null) {
                 int value = card.getValue();
+
                 if (value == 14) { // Туз
                     aces++;
                     score += 11;
+
                 } else if (value > 10) {
                     score += 10;
+
                 } else {
                     score += value;
                 }
@@ -167,7 +161,17 @@ public class BlackJack implements Game {
         gameState += "Карты дилера:  " + getHandAsString(dealerHand, showDealerAll);
 
         if (isPlayerTurn && !isGameOver) {
-            int visibleDealerScore = dealerHand[0] != null ? dealerHand[0].getValue() : 0;
+            int visibleDealerScore = 0;
+            if (dealerHand[0] != null) {
+                int value = dealerHand[0].getValue();
+                if (value == 14) {
+                    visibleDealerScore = 11;
+                } else if (value > 10) {
+                    visibleDealerScore = 10;
+                } else {
+                    visibleDealerScore = value;
+                }
+            }
             gameState += "  (Сумма: " + visibleDealerScore + ")\n\n";
         } else {
             gameState += "  (Сумма: " + dealerScore + ")\n\n";
@@ -254,14 +258,17 @@ public class BlackJack implements Game {
         if (isWinner) {
             if (playerScore == 21 && playerHand[2] == null) {
                 winAmount = (int) Math.floor(currentBet * 1.5);
+                userService.changeWinsAndEarnedBlackJack(userID, (int)Math.floor(currentBet * 0.5));
                 resultMessage = "🎉 **Блэкджек!** Вы выиграли с натуральной 21!\n" +
                         "💎 Выигрыш: " + winAmount + " 🪙\n";
             } else if (playerScore == dealerScore) {
                 winAmount = currentBet;
+                userService.changeWinsAndEarnedBlackJack(userID, 0);
                 resultMessage = "🤝 **Ничья!** Ставка возвращается.\n" +
                         "💎 Возврат: " + winAmount + " 🪙\n";
             } else {
                 winAmount = currentBet * 2;
+                userService.changeWinsAndEarnedBlackJack(userID, currentBet);
                 resultMessage = "🎉 **Вы выиграли!**\n" +
                         "💎 Выигрыш: " + winAmount + " 🪙\n";
             }
@@ -277,6 +284,7 @@ public class BlackJack implements Game {
             }
         } else {
             int newBalance = userService.getUserBalance(userID);
+            userService.changeLossesAndLostBlackJack(userID, currentBet);
             String lossMessage = "❌ **Вы проиграли!**\n" +
                     "Потеряно: " + currentBet + " 🪙\n" +
                     "💰 Остаток баланса: " + newBalance + " 🪙\n\n" +
