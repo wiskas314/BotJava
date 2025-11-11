@@ -87,16 +87,16 @@ public class TelegramBot extends TelegramLongPollingBot {
                     }
                 }
 
-                if (callbackData.equals("add_balance_500")) {
+                if (callbackData.equals("add_balance_1000")) {
                     Long userID = callbackQuery.getFrom().getId();
                     user = userService.getOrCreateUser(userID, callbackQuery.getFrom().getUserName());
                     KeyboardFactory keyboardFactory = new KeyboardFactory();
-                    boolean success = userService.payWinnings(userID, 500);
+                    boolean success = userService.payWinnings(userID, 1000);
 
                     if (success) {
                         int newBalance = userService.getUserBalance(userID);
                         sendMessage(
-                                "Баланс пополнен на 500\nНовый баланс: " + newBalance,
+                                "Баланс пополнен на 1000\nНовый баланс: " + newBalance,
                                 chatId,
                                 keyboardFactory.createGameSelectionKeyboard()
                         );
@@ -134,7 +134,12 @@ public class TelegramBot extends TelegramLongPollingBot {
                     message.setText("Выберите игру:");
                     message.setReplyMarkup(keyboardFactory.createGameSelectionKeyboard());
                     sender(message);
-                } else {
+                }else if(text.equals("/balance")){
+                    KeyboardFactory keyboardFactory =new KeyboardFactory();
+                    sendMessage("Ваш баланс "+ userService.getUserBalance(chatId), String.valueOf(chatId),
+                            keyboardFactory.createReplenishKeyboard());
+                }
+                    else {
                     String responseText = messageHandler.handleMessage(text, userName, chatId);
                     SendMessage message = new SendMessage();
                     message.setChatId(chatId.toString());

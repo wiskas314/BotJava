@@ -116,7 +116,7 @@ public class KeyboardFactory {
      */
     public InlineKeyboardMarkup createReplenishKeyboard(){
         String[][][] buttons ={
-            {{" Пополнить баланс +500", "add_balance_500"}}
+            {{" Пополнить баланс +1000", "add_balance_1000"}}
         };
         return createKeyboard(buttons);
     }
