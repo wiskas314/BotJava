@@ -30,9 +30,7 @@ public class MessageHandler {
                 /start - Начать общение с ботом
                 /help - Получить список команд
                 /play - Вызывает меню с выбором игр
-                 /balance - Показывает ваш баланс""";
-                case "/balance":
-                    return "Ваш баланс " + String.valueOf(userService.getUserBalance(chatId));
+                /balance - Показывает ваш баланс""";
                 default:
                     return echoMessage(message);
             }
