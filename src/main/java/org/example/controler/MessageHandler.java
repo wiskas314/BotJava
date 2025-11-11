@@ -33,12 +33,10 @@ public class MessageHandler {
                 /start - Начать общение с ботом
                 /help - Получить список команд
                 /play - Вызывает меню с выбором игр
-                 /balance - Показывает ваш баланс
-                 /statistic - Отображает вашу статистику
-                 /statistic_all - Отображает вашу общую статистику
-                 /top - Показывает топ 10 игроков""";
-                case "/balance":
-                    return "Ваш баланс " + String.valueOf(userService.getUserBalance(chatId));
+                /balance - Показывает ваш баланс
+                /statistic - Отображает вашу статистику
+                /statistic_all - Отображает вашу общую статистику
+                /top - Показывает топ 10 игроков""";
                 case "/statistic_all":
                     int totalWins = userService.getBjWins(chatId) + userService.getRtbWins(chatId);
                     int totalLosses = userService.getBjLosses(chatId) + userService.getRtbLosses(chatId);

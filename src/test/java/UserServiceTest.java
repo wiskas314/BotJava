@@ -17,7 +17,8 @@ import java.util.List;
  * тестовый класс для проверки функциональности сервиса пользователей
  */
 public class UserServiceTest {
-
+    private static final Long TEST_CHAT_ID = 99999L;
+    private static final String TEST_USERNAME = "test_user_999";
     private UserService userService;
     private List<Long> testUserIds;
 
@@ -25,6 +26,7 @@ public class UserServiceTest {
     void setUp() {
         userService = new UserService();
         testUserIds = new ArrayList<>();
+        userService.getOrCreateUser(TEST_CHAT_ID, TEST_USERNAME);
         clearTestData();
     }
 
@@ -160,39 +162,51 @@ public class UserServiceTest {
     }
 
     /**
-     * тестирование полного цикла функциональности сервиса пользователей
+     * тестирует успешное размещение ставки
+     * проверяет, что при успешной ставке баланс уменьшается на сумму ставки
      */
     @Test
-    void testUserServiceFunctionality() {
-        User user = userService.getOrCreateUser(99999L, "test_user_999");
-        Assertions.assertNotNull(user);
-        Assertions.assertEquals(99999L, user.getChatId());
-        Assertions.assertEquals("test_user_999", user.getUsername());
+    void testPlaceBet() {
+        userService.changeBalance(TEST_CHAT_ID, 100);
+        int betAmount = 50;
+        int initialBalance = userService.getUserBalance(TEST_CHAT_ID);
 
+        boolean betPlaced = userService.placeBet(TEST_CHAT_ID, betAmount);
+        int newBalance = userService.getUserBalance(TEST_CHAT_ID);
 
-        int balance = userService.getUserBalance(99999L);
-        Assertions.assertTrue(balance >= 0);
-
-
-        boolean success = userService.changeBalance(99999L, 100);
-        Assertions.assertTrue(success);
-
-        int newBalance = userService.getUserBalance(99999L);
-        Assertions.assertEquals(balance + 100, newBalance);
-
-
-        boolean canBet = userService.canPlaceBet(99999L, 50);
-        Assertions.assertTrue(canBet);
-
-
-        boolean betPlaced = userService.placeBet(99999L, 50);
         Assertions.assertTrue(betPlaced);
-
-
-        boolean winningsPaid = userService.payWinnings(99999L, 200);
-        Assertions.assertTrue(winningsPaid);
+        Assertions.assertEquals(initialBalance - betAmount, newBalance);
     }
 
+    /**
+     * тестирует выплату выигрыша пользователю
+     * проверяет, что при выплате выигрыша баланс увеличивается на соответствующую сумму
+     */
+    @Test
+    void testPayWinnings() {
+        int initialBalance = userService.getUserBalance(TEST_CHAT_ID);
+        int winnings = 200;
 
+        boolean winningsPaid = userService.payWinnings(TEST_CHAT_ID, winnings);
+        int newBalance = userService.getUserBalance(TEST_CHAT_ID);
 
+        Assertions.assertTrue(winningsPaid);
+        Assertions.assertEquals(initialBalance + winnings, newBalance);
+    }
+
+    /**
+     * тестирует попытку размещения ставки при недостаточном балансе
+     * проверяет, что система не позволяет сделать ставку и баланс не изменяется
+     */
+    @Test
+    void testPlaceBetWithInsufficientBalance() {
+        int currentBalance = userService.getUserBalance(TEST_CHAT_ID);
+        int excessiveBetAmount = currentBalance + 1000;
+
+        boolean betPlaced = userService.placeBet(TEST_CHAT_ID, excessiveBetAmount);
+        int newBalance = userService.getUserBalance(TEST_CHAT_ID);
+
+        Assertions.assertFalse(betPlaced);
+        Assertions.assertEquals(currentBalance, newBalance);
+    }
 }
