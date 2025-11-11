@@ -167,7 +167,17 @@ public class BlackJack implements Game {
         gameState += "Карты дилера:  " + getHandAsString(dealerHand, showDealerAll);
 
         if (isPlayerTurn && !isGameOver) {
-            int visibleDealerScore = dealerHand[0] != null ? dealerHand[0].getValue() : 0;
+            int visibleDealerScore = 0;
+            if (dealerHand[0] != null) {
+                int value = dealerHand[0].getValue();
+                if (value == 14) {
+                    visibleDealerScore = 11;
+                } else if (value > 10) {
+                    visibleDealerScore = 10;
+                } else {
+                    visibleDealerScore = value;
+                }
+            }
             gameState += "  (Сумма: " + visibleDealerScore + ")\n\n";
         } else {
             gameState += "  (Сумма: " + dealerScore + ")\n\n";
