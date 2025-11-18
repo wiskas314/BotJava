@@ -74,12 +74,8 @@ public class TelegramBot extends TelegramLongPollingBot implements GameCallBack 
 
                 if (text.equals("/play")) {
                     KeyboardFactory keyboardFactory = new KeyboardFactory();
-                    SendMessage message = new SendMessage();
-                    message.setChatId(chatId);
-                    message.setText("Выберите игру:");
-                    message.setReplyMarkup(keyboardFactory.createGameSelectionKeyboard());
+                    sendMessage("Выберите игру:", chatId, keyboardFactory.createGameSelectionKeyboard());
 
-                    sender(message);
                 } else {
                     String responseText = messageHandler.handleMessage(text, userName);
                     SendMessage message = new SendMessage();
