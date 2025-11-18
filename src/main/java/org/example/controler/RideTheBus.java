@@ -2,8 +2,7 @@ package org.example.controler;
 
 import org.example.controler.cards.Card;
 import org.example.controler.cards.Deck;
-
-
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 /**
  * Класс Реализующий игру в Ride The Bus
@@ -15,6 +14,7 @@ public class RideTheBus {
     private String chatId;
     private boolean isGameOver;
     private boolean isProcessing;
+    private GameCallBack gameCallback;
 
     public RideTheBus() {
         keyboardFactory = new KeyboardFactory();
@@ -22,7 +22,13 @@ public class RideTheBus {
         isGameOver = false;
         isProcessing = false;
         deck = new Deck(4);
+    }
 
+    /**
+     * Устанавливает callback для взаимодействия с внешним миром
+     */
+    public void setGameCallback(GameCallBack callback) {
+        this.gameCallback = callback;
     }
 
     /**
@@ -61,13 +67,15 @@ public class RideTheBus {
         }
         return true;
     }
+
     /**
      * Начало игры
      */
-    public void startGame(String chatId, TelegramBot bot) {
+    public void startGame(String chatId) {
         this.chatId = chatId;
-        play(bot);
+        play();
     }
+
     /**
      * Сброс состояния игры
      */
@@ -77,55 +85,64 @@ public class RideTheBus {
         deck.initializeDeck();
 
         isGameOver = false;
-        isProcessing = false; // Сброс флага обработки
+        isProcessing = false;
     }
+
     /**
      * Геттер isGameOver
      */
     public boolean IsGameOver(){
         return isGameOver;
     }
+
     /**
      * Метод реализующий интерфейс во время игры
      */
-    private void play(TelegramBot bot) {
+    private void play() {
+        if (gameCallback == null || chatId == null) {
+            System.err.println("GameCallback or chatId is null in play()");
+            return;
+        }
+
         String roundText = "";
+        InlineKeyboardMarkup keyboard = null;
+
         switch (deck.roundNumber) {
             case 1:
                 roundText = "Раунд 1 \nВыберите цвет:";
-                bot.keyboard = keyboardFactory.keyboardFirstRound();
+                keyboard = keyboardFactory.keyboardFirstRound();
                 break;
 
             case 2:
                 roundText = "Раунд 2 \nВыберите будет ли следующая карта старшей или младшей масти:";
-                bot.keyboard = keyboardFactory.createHigherLowerKeyboard();
+                keyboard = keyboardFactory.createHigherLowerKeyboard();
                 break;
 
             case 3:
                 roundText = "Раунд 3 \nВыберите будет ли следующая карта внутри или вне диапазона:";
-                bot.keyboard = keyboardFactory.createRangeKeyboard();
+                keyboard = keyboardFactory.createRangeKeyboard();
                 break;
 
             case 4:
                 roundText = "Раунд 4 \nВыберите какой масти будет следующая карта:";
-                bot.keyboard = keyboardFactory.createSuitGuessKeyboard();
+                keyboard = keyboardFactory.createSuitGuessKeyboard();
                 break;
 
             case 5:
-                // Игра завершена
-                handleGameOver(bot, true);
+                handleGameOver(true);
                 return;
         }
 
-        if (bot.keyboard != null) {
-            bot.sendMessage(roundText + "\n" + deck.getTableAsString() + " " + specialCard, chatId, bot.keyboard);
+        if (keyboard != null) {
+            gameCallback.sendGameMessage(chatId,roundText + "\n" + deck.getTableAsString() + " " + specialCard, keyboard);
         }
     }
+
     /**
      * Метод для обработки выбора пользователя
      */
-    public void processUserChoice(String callbackData, TelegramBot bot) {
-        if (isGameOver) {
+    public void processUserChoice(String callbackData) {
+        if (isGameOver || gameCallback == null) {
             return;
         }
 
@@ -134,31 +151,42 @@ public class RideTheBus {
         boolean isWin = checkWin(callbackData, card);
 
         if (isWin) {
-            bot.sendMessage(deck.getTableAsString() + "\nПоздравляем, вы выиграли!",chatId,null);
+            gameCallback.sendGameMessage(
+                    chatId,
+                    deck.getTableAsString() + "\nПоздравляем, вы выиграли!",
+                    null
+            );
 
             if (deck.roundNumber == 4) {
-                handleGameOver(bot, true);
+                handleGameOver(true);
             } else {
-                deck.roundNumber=deck.roundNumber+1;
-                play(bot);
+                deck.roundNumber++;
+                play();
             }
         } else {
-            handleGameOver(bot, false);
+            handleGameOver(false);
         }
-
     }
+
     /**
-     *Обработка конца игры
+     * Обработка конца игры
      */
-    private void handleGameOver(TelegramBot bot, boolean isWinner) {
+    private void handleGameOver(boolean isWinner) {
+        if (gameCallback == null) return;
+
         if (isWinner) {
-            bot.sendMessage(deck.getTableAsString() + "\nВы прошли все раунды! 🎉\nХотите выбрать другую игру?",
+            gameCallback.sendGameMessage(
                     chatId,
-                    keyboardFactory.createGameSelectionKeyboard());
+                    deck.getTableAsString() + "\nВы прошли все раунды! 🎉\nХотите выбрать другую игру?",
+
+                    keyboardFactory.createGameSelectionKeyboard()
+            );
         } else {
-            bot.sendMessage(deck.getTableAsString() + "\nК сожалению, вы проиграли! Хотите сыграть снова?",
+            gameCallback.sendGameMessage(
                     chatId,
-                    keyboardFactory.createGameSelectionKeyboard());
+                    deck.getTableAsString() + "\nК сожалению, вы проиграли! Хотите сыграть снова?",
+                    keyboardFactory.createGameSelectionKeyboard()
+            );
         }
         resetGame();
     }
