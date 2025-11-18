@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Класс телеграм-бота
  */
-public class TelegramBot extends TelegramLongPollingBot {
+public class TelegramBot extends TelegramLongPollingBot implements GameCallBack  {
     private Map<String, RideTheBus> activeGames;
     private final String botUsername;
     private final String botToken;
@@ -34,6 +34,11 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     @Override
+    public void sendGameMessage(String chatId, String text, InlineKeyboardMarkup keyboard) {
+        sendMessage(text, chatId, keyboard);
+    }
+
+    @Override
     public void onUpdateReceived(Update update) {
         try {
             if (update.hasCallbackQuery()) {
@@ -44,8 +49,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                 if (callbackData.equals("ride_the_bus")) {
                     activeGames.remove(chatId);
                     RideTheBus game = new RideTheBus();
+                    game.setGameCallback(this);
                     activeGames.put(chatId, game);
-                    game.startGame(chatId, this);
+                    game.startGame(chatId);
                     return;
                 }
 
@@ -55,7 +61,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                         activeGames.remove(chatId);
                         return;
                     }
-                    lateGame.processUserChoice(callbackData, this);
+                    lateGame.processUserChoice(callbackData);
                     return;
                 }
             }
@@ -68,12 +74,8 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 if (text.equals("/play")) {
                     KeyboardFactory keyboardFactory = new KeyboardFactory();
-                    SendMessage message = new SendMessage();
-                    message.setChatId(chatId);
-                    message.setText("Выберите игру:");
-                    message.setReplyMarkup(keyboardFactory.createGameSelectionKeyboard());
+                    sendMessage("Выберите игру:", chatId, keyboardFactory.createGameSelectionKeyboard());
 
-                    sender(message);
                 } else {
                     String responseText = messageHandler.handleMessage(text, userName);
                     SendMessage message = new SendMessage();
