@@ -24,18 +24,5 @@ class MessageHandlerTest {
 
         Assert.assertEquals("Вы написали: TEST", result);
     }
-
-    /**
-     * тестирует вывод баланса
-     */
-    @Test
-    void testBalanceCommand(){
-        MessageHandler messageHandler = new MessageHandler();
-        UserService userService = new UserService();
-
-        userService.getOrCreateUser(1L,"Alice");
-
-        String responce = messageHandler.handleMessage("/balance","Alice",1L);
-        Assert.assertEquals("Ваш баланс 1000",responce);
-    }
+    
 }

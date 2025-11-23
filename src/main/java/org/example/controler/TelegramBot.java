@@ -129,17 +129,14 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 if (text.equals("/play")) {
                     KeyboardFactory keyboardFactory = new KeyboardFactory();
-                    SendMessage message = new SendMessage();
-                    message.setChatId(chatId);
-                    message.setText("Выберите игру:");
-                    message.setReplyMarkup(keyboardFactory.createGameSelectionKeyboard());
-                    sender(message);
+                    sendMessage("Выберите игру", String.valueOf(chatId),
+                            keyboardFactory.createGameSelectionKeyboard());
                 }else if(text.equals("/balance")){
                     KeyboardFactory keyboardFactory =new KeyboardFactory();
                     sendMessage("Ваш баланс "+ userService.getUserBalance(chatId), String.valueOf(chatId),
                             keyboardFactory.createReplenishKeyboard());
                 }
-                    else {
+                else {
                     String responseText = messageHandler.handleMessage(text, userName, chatId);
                     SendMessage message = new SendMessage();
                     message.setChatId(chatId.toString());
