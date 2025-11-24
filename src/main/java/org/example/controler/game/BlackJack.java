@@ -1,7 +1,7 @@
 package org.example.controler.game;
 
 import org.example.controler.KeyboardFactory;
-import org.example.controler.TelegramBot;
+import org.example.controler.MessageSender;
 import org.example.controler.cards.Card;
 import org.example.controler.cards.Deck;
 import org.example.controler.db.UserService;
@@ -14,7 +14,7 @@ public class BlackJack implements Game {
     private Deck deck;
     private final KeyboardFactory keyboardFactory;
     private String chatId;
-    private Long userID;
+    private MessageSender gameCallback;
     private boolean isGameOver;
     private boolean isPlayerTurn;
     private int playerScore;
@@ -41,26 +41,28 @@ public class BlackJack implements Game {
     }
 
     /**
+     * Устанавливает callback для взаимодействия с внешним миром
+     */
+    public void setGameCallback(MessageSender callback) {
+        this.gameCallback = callback;
+    }
+    /**
      * Установка пользователя (требуется для работы со ставками)
      */
-    public void setUser(Long userId) {
-        this.userID = userId;
-    }
-
     @Override
-    public void startGame(String chatId, TelegramBot bot) {
+    public void startGame(String chatId) {
         this.chatId = chatId;
 
         if (!betPlaced) {
-            int balance = userService.getUserBalance(userID);
+            int balance = userService.getUserBalance(Long.valueOf(chatId));
             if (balance == 0) {
-                bot.sendMessage(
+                gameCallback.sendMessage(
                         "Вам нужно пополнить баланс",
                         chatId,
                         keyboardFactory.createReplenishKeyboard()
                 );
             } else {
-                bot.sendMessage(
+                gameCallback.sendMessage(
                         "Ваш баланс: " + balance + " 🪙\nСделайте ставку для начала игры",
                         chatId,
                         keyboardFactory.createBetKeyboard()
@@ -68,7 +70,7 @@ public class BlackJack implements Game {
             }
         } else {
             dealInitialCards();
-            sendGameState(bot);
+            sendGameState();
         }
     }
 
@@ -159,7 +161,7 @@ public class BlackJack implements Game {
     /**
      * Отправка текущего состояния игры
      */
-    private void sendGameState(TelegramBot bot) {
+    private void sendGameState() {
         String gameState = "🃏 **Black Jack** 🃏\n\n";
         gameState += "Ваши карты:  " + getHandAsString(playerHand, true) + "  (Сумма: " + playerScore + ")\n";
 
@@ -196,11 +198,11 @@ public class BlackJack implements Game {
             markup = keyboardFactory.createGameSelectionKeyboard();
         }
 
-        bot.sendMessage(gameState, chatId, markup);
+        gameCallback.sendMessage(gameState, chatId, markup);
     }
 
     @Override
-    public void processUserChoice(String callbackData, TelegramBot bot) {
+    public void processUserChoice(String callbackData) {
         if (isGameOver) return;
 
         if ("hit".equals(callbackData)) {
@@ -214,21 +216,21 @@ public class BlackJack implements Game {
 
             if (playerScore > 21) {
                 isGameOver = true;
-                sendGameState(bot);
-                handleGameOver(bot, false);
+                sendGameState();
+                handleGameOver(false);
             } else {
-                sendGameState(bot);
+                sendGameState();
             }
         } else if ("stand".equals(callbackData)) {
             isPlayerTurn = false;
-            dealerTurn(bot);
+            dealerTurn();
         }
     }
 
     /**
      * Ход дилера (автоматический)
      */
-    private void dealerTurn(TelegramBot bot) {
+    private void dealerTurn() {
         while (dealerScore < 17 && dealerScore < playerScore) {
             for (int i = 0; i < 5; i++) {
                 if (dealerHand[i] == null) {
@@ -239,8 +241,8 @@ public class BlackJack implements Game {
             dealerScore = calculateScore(dealerHand);
         }
         isGameOver = true;
-        sendGameState(bot);
-        handleGameOver(bot, determineIfPlayerWon());
+        sendGameState();
+        handleGameOver(determineIfPlayerWon());
     }
 
     /**
@@ -257,7 +259,7 @@ public class BlackJack implements Game {
     /**
      * Обработка конца игры: выплата выигрыша или сброс
      */
-    private void handleGameOver(TelegramBot bot, boolean isWinner) {
+    private void handleGameOver(boolean isWinner) {
         int winAmount = 0;
         String resultMessage;
 
@@ -276,28 +278,28 @@ public class BlackJack implements Game {
                         "💎 Выигрыш: " + winAmount + " 🪙\n";
             }
 
-            boolean success = userService.payWinnings(userID, winAmount);
+            boolean success = userService.payWinnings(Long.valueOf(chatId), winAmount);
             if (success) {
-                int newBalance = userService.getUserBalance(userID);
+                int newBalance = userService.getUserBalance(Long.valueOf(chatId));
                 resultMessage += "💰 Новый баланс: " + newBalance + " 🪙\n\n" +
                         "Хотите сыграть ещё?";
-                bot.sendMessage(resultMessage, chatId, keyboardFactory.createGameSelectionKeyboard());
+                gameCallback.sendMessage(resultMessage, chatId, keyboardFactory.createGameSelectionKeyboard());
             } else {
-                bot.sendMessage("❌ Ошибка при выплате выигрыша", chatId, null);
+                gameCallback.sendMessage("❌ Ошибка при выплате выигрыша", chatId, null);
             }
         } else {
-            int newBalance = userService.getUserBalance(userID);
+            int newBalance = userService.getUserBalance(Long.valueOf(chatId));
             String lossMessage = "❌ **Вы проиграли!**\n" +
                     "Потеряно: " + currentBet + " 🪙\n" +
                     "💰 Остаток баланса: " + newBalance + " 🪙\n\n" +
                     "Хотите сыграть ещё?";
-            bot.sendMessage(lossMessage, chatId, keyboardFactory.createGameSelectionKeyboard());
+            gameCallback.sendMessage(lossMessage, chatId, keyboardFactory.createGameSelectionKeyboard());
         }
         resetGame();
     }
 
     @Override
-    public void processBet(String callbackData, TelegramBot bot) {
+    public void processBet(String callbackData) {
         if (betPlaced) {
             return;
         }
@@ -305,38 +307,38 @@ public class BlackJack implements Game {
         try {
             int bet = 0;
             if ("bet_all".equals(callbackData)) {
-                bet = userService.getUserBalance(userID);
+                bet = userService.getUserBalance(Long.valueOf(chatId));
             } else {
                 bet = Integer.parseInt(callbackData.replace("bet_", ""));
             }
 
             if (bet <= 0) {
-                bot.sendMessage("❌ Ставка должна быть больше 0!", chatId, null);
+                gameCallback.sendMessage("❌ Ставка должна быть больше 0!", chatId, null);
                 return;
             }
 
-            if (userService.canPlaceBet(userID, bet)) {
-                if (userService.placeBet(userID, bet)) {
+            if (userService.canPlaceBet(Long.valueOf(chatId), bet)) {
+                if (userService.placeBet(Long.valueOf(chatId), bet)) {
                     currentBet = bet;
                     betPlaced = true;
-                    int balance = userService.getUserBalance(userID);
+                    int balance = userService.getUserBalance(Long.valueOf(chatId));
                     String confirmMessage = "✅ Ставка " + bet + " 🪙 принята!\n" +
                             "💰 Текущий баланс: " + balance + " 🪙\n\n" +
                             "Начинаем игру в Black Jack!";
-                    bot.sendMessage(confirmMessage, chatId, null);
+                    gameCallback.sendMessage(confirmMessage, chatId, null);
                     dealInitialCards();
-                    sendGameState(bot);
+                    sendGameState();
                 } else {
-                    bot.sendMessage("❌ Ошибка при размещении ставки", chatId, null);
+                    gameCallback.sendMessage("❌ Ошибка при размещении ставки", chatId, null);
                 }
             } else {
-                int balance = userService.getUserBalance(userID);
+                int balance = userService.getUserBalance(Long.valueOf(chatId));
                 String insufficientFunds = "❌ Недостаточно средств для ставки " + bet + " 🪙\n" +
                         "💰 Ваш баланс: " + balance + " 🪙";
-                bot.sendMessage(insufficientFunds, chatId, keyboardFactory.createBetKeyboard());
+                gameCallback.sendMessage(insufficientFunds, chatId, keyboardFactory.createBetKeyboard());
             }
         } catch (NumberFormatException e) {
-            bot.sendMessage("❌ Неверный формат ставки", chatId, null);
+            gameCallback.sendMessage("❌ Неверный формат ставки", chatId, null);
         }
     }
 

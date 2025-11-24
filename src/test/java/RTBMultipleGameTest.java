@@ -1,4 +1,6 @@
-import org.example.controler.RideTheBus;
+
+import org.example.controler.game.Game;
+import org.example.controler.game.RideTheBus;
 import org.junit.jupiter.api.Test;
 
 
@@ -16,7 +18,7 @@ public class RTBMultipleGameTest {
 
     @Test
     void testMultipleGamesInRow() {
-        RideTheBus game = new RideTheBus();
+        Game game = new RideTheBus();
 
         game.setGameCallback((chatId, text, keyboard) -> {
         });
@@ -24,7 +26,7 @@ public class RTBMultipleGameTest {
         final int numberOfGames = 3;
 
         for (int i = 0; i < numberOfGames; i++) {
-            String chatId = "chat_" + i;
+            String chatId = "1" + i;
 
             assertDoesNotThrow(() -> {
                 game.startGame(chatId);
@@ -32,7 +34,7 @@ public class RTBMultipleGameTest {
                 final int movesPerGame = 2;
 
                 for (int j = 0; j < movesPerGame; j++) {
-                    if (!game.IsGameOver()) {
+                    if (!game.getIsGameOver()) {
                         game.processUserChoice("red");
                     }
                 }

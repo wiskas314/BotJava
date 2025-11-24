@@ -29,7 +29,6 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     private final MessageHandler messageHandler;
     public InlineKeyboardMarkup keyboard;
     private UserService userService;
-    private User user;
 
     /**
      * конструктор
@@ -60,25 +59,25 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                 if (callbackData.equals("ride_the_bus")) {
                     activeGames.remove(chatId);
                     RideTheBus game = new RideTheBus();
-                    game.setUser(userId);
+                    game.setGameCallback(this);
                     activeGames.put(chatId, game);
-                    game.startGame(chatId, this);
+                    game.startGame(chatId);
                     return;
                 }
 
                 if (callbackData.equals("black_jack")) {
                     activeGames.remove(chatId);
                     BlackJack game = new BlackJack();
-                    game.setUser(userId);
+                    game.setGameCallback(this);
                     activeGames.put(chatId, game);
-                    game.startGame(chatId, this);
+                    game.startGame(chatId);
                     return;
                 }
 
                 if (callbackData.equals("exit")) {
                     Game game = activeGames.get(chatId);
                     if (game != null) {
-                        game.processUserChoice(callbackData, this);
+                        game.processUserChoice(callbackData);
                         return;
                     }
                 }
@@ -86,7 +85,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                 if (callbackData.startsWith("bet_")) {
                     Game game = activeGames.get(chatId);
                     if (game != null) {
-                        game.processBet(callbackData, this);
+                        game.processBet(callbackData);
                         return;
                     }
                 }
@@ -102,7 +101,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                         activeGames.remove(chatId);
                         return;
                     }
-                    currentGame.processUserChoice(callbackData, this);
+                    currentGame.processUserChoice(callbackData);
                     return;
                 }
             }

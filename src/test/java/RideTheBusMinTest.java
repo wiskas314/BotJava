@@ -1,4 +1,5 @@
-import org.example.controler.RideTheBus;
+import org.example.controler.game.Game;
+import org.example.controler.game.RideTheBus;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -8,15 +9,15 @@ import static org.junit.jupiter.api.Assertions.*;
 public class RideTheBusMinTest {
     @Test
     void testBasicFunctionality() {
-        RideTheBus game = new RideTheBus();
+        Game game = new RideTheBus();
 
         assertDoesNotThrow(() -> {
             game.setGameCallback((chatId, text, keyboard) -> {});
-            game.startGame("test");
+            game.startGame("1");
             game.processUserChoice("red");
         });
 
-        assertFalse(game.IsGameOver());
+        assertFalse(game.getIsGameOver());
     }
 }
 
