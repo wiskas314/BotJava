@@ -1,17 +1,16 @@
 package org.example.controler.cards;
 
-
-
 import java.util.ArrayList;
 import java.util.Random;
 
+/**
+ * Класс реализующий колоду
+ */
 public class Deck {
     private ArrayList<Card> deck;
     private Random random;
     private String[] suits;
     private String[] values;
-
-
 
     public Deck(){
         random = new Random();
@@ -19,6 +18,7 @@ public class Deck {
         values = new String[]{"2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"};
         initializeDeck();
     }
+
     /**
      * Инициализация колоды
      */
@@ -43,6 +43,7 @@ public class Deck {
             deck.set(randomIndex, temp);
         }
     }
+
     /**
      *Раздача карты
      */
