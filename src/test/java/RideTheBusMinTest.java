@@ -14,10 +14,10 @@ public class RideTheBusMinTest {
         assertDoesNotThrow(() -> {
             game.setGameCallback((chatId, text, keyboard) -> {});
             game.startGame("1");
-            game.processUserChoice("red");
+            game.processUserChoice("fall_answer");
         });
 
-        assertFalse(game.getIsGameOver());
+        assertTrue(game.getIsGameOver());
     }
 }
 
