@@ -7,7 +7,6 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
-
 /**
  * Main главный класс приложения для запуска Telegram бота
  */
@@ -20,7 +19,7 @@ public class Main {
             BotConfig config = new BotConfig(args);
             botsApi.registerBot(new TelegramBot(config.getUsername(), config.getToken()));
 
-            System.out.println("EchoBot успешно запущен!");
+            System.out.println("GamblingBot успешно запущен!");
 
 
         } catch (TelegramApiException e) {

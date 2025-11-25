@@ -2,24 +2,35 @@ package org.example.controler;
 
 
 import org.apache.commons.lang3.StringUtils;
+import org.example.controler.db.UserService;
 
 /**
- * класс для обрабатывания входящих сообщений и генерации ответа
+ * Класс для обрабатывания входящих сообщений и генерации ответа
  */
 public class MessageHandler {
+    private final UserService userService;
+
+
+    public MessageHandler() {
+        this.userService = new UserService();
+    }
+
     /**
-     * обрабатывает текст входящего сообщения и возвращает текстовый ответ.
+     * Обрабатывает текст входящего сообщения и возвращает текстовый ответ.
      */
-    public String handleMessage(String message, String userName) {
+    public String handleMessage(String message, String userName,Long chatId) {
         if (StringUtils.isNotEmpty(message)) {
             switch (message) {
                 case "/start":
-                    return startMessage(userName);
+                    return "Привет, " + userName + "! Я бот, готовый помочь скоротать время." +
+                            "\nЧтобы узнать, что я умею, введи /help";
                 case "/help":
                     return """
                 Вот список доступных команд:
                 /start - Начать общение с ботом
-                /help - Получить список команд""";
+                /help - Получить список команд
+                /play - Вызывает меню с выбором игр
+                /balance - Показывает ваш баланс""";
                 default:
                     return echoMessage(message);
             }
@@ -27,17 +38,12 @@ public class MessageHandler {
             return "Ошибка обработки входных данных, проверьте что вы ввели текст!";
         }
     }
+
     /**
      * Генерируется эхо-сообщение пользователю
      */
     private String echoMessage(String messageText) {
         return "Вы написали: " + messageText;
-    }
-    /**
-     * Сообщение которое генерируется при начале диалога либо после команды /start
-     */
-    private String startMessage(String userName) {
-        return "Привет, " + userName + "! Я бот, готовый помогать.\nЧтобы узнать, что я умею, введи /help";
     }
 
 }
