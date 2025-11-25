@@ -266,14 +266,19 @@ public class BlackJack implements Game {
         if (isWinner) {
             if (playerScore == 21 && playerHand[2] == null) {
                 winAmount = (int) Math.floor(currentBet * 1.5);
+                userService.changeWinsAndEarnedBlackJack(Long.valueOf(chatId), (int)Math.floor(currentBet * 0.5));
+                userService.changeEarned(Long.valueOf(chatId),(int)Math.floor(currentBet * 0.5));
                 resultMessage = "🎉 **Блэкджек!** Вы выиграли с натуральной 21!\n" +
                         "💎 Выигрыш: " + winAmount + " 🪙\n";
             } else if (playerScore == dealerScore) {
                 winAmount = currentBet;
+                userService.changeWinsAndEarnedBlackJack(Long.valueOf(chatId), 0);
                 resultMessage = "🤝 **Ничья!** Ставка возвращается.\n" +
                         "💎 Возврат: " + winAmount + " 🪙\n";
             } else {
                 winAmount = currentBet * 2;
+                userService.changeWinsAndEarnedBlackJack(Long.valueOf(chatId), currentBet);
+                userService.changeEarned(Long.valueOf(chatId),currentBet);
                 resultMessage = "🎉 **Вы выиграли!**\n" +
                         "💎 Выигрыш: " + winAmount + " 🪙\n";
             }
@@ -288,7 +293,9 @@ public class BlackJack implements Game {
                 gameCallback.sendMessage("❌ Ошибка при выплате выигрыша", chatId, null);
             }
         } else {
+
             int newBalance = userService.getUserBalance(Long.valueOf(chatId));
+            userService.changeLossesAndLostBlackJack(Long.valueOf(chatId), currentBet);
             String lossMessage = "❌ **Вы проиграли!**\n" +
                     "Потеряно: " + currentBet + " 🪙\n" +
                     "💰 Остаток баланса: " + newBalance + " 🪙\n\n" +

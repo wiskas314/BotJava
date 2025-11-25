@@ -73,7 +73,21 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                     game.startGame(chatId);
                     return;
                 }
+                if (callbackData.equals("black_jack_stat")) {
+                    String text = "Количество побед - поражений: " + String.valueOf(userService.getBjWins(userId)) + "-" +
+                            String.valueOf(userService.getBjLosses(userId)) + "\n" +
+                            "Выиграно-проиграно:  " + String.valueOf(userService.getBjEarned(userId)) + "-" +
+                            String.valueOf(userService.getBjLost(userId));
+                    sendMessage(text, chatId, null);
+                }
 
+                if (callbackData.equals("ride_the_bus_stat")) {
+                    String text = "Количество побед - поражений:  " + String.valueOf(userService.getRtbWins(userId)) + "-" +
+                            String.valueOf(userService.getRtbLosses(userId)) + "\n" +
+                            "Выиграно-проиграно:  " + String.valueOf(userService.getRtbEarned(userId)) + "-" +
+                            String.valueOf(userService.getRtbLost(userId));
+                    sendMessage(text, chatId, null);
+                }
                 if (callbackData.equals("exit")) {
                     Game game = activeGames.get(chatId);
                     if (game != null) {
@@ -117,7 +131,10 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                             keyboardFactory.createGameSelectionKeyboard());
                 } else if (text.equals("/balance")) {
                     balanceService.handleBalanceCommand(chatId);
-                } else {
+                }else if (text.equals("/statistic")) {
+                    sendMessage("Выберите по какой игре показать статистику:", String.valueOf(chatId),
+                            keyboardFactory.createSelfStatFor());
+                }else {
                     String responseText = messageHandler.handleMessage(text, userName, chatId);
                     SendMessage message = new SendMessage();
                     message.setChatId(chatId.toString());

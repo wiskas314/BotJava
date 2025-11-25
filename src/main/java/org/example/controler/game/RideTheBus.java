@@ -134,6 +134,7 @@ public class RideTheBus implements Game {
         deck.initializeDeck();
         betPlaced = false;
         currentBet = 0;
+        isGameOver = true;
         currentMultiplier = 1;
     }
 
@@ -188,6 +189,8 @@ public class RideTheBus implements Game {
 
             if (success) {
                 int newBalance = userService.getUserBalance(Long.valueOf(chatId));
+                userService.changeWinAndEarnedRideTheBus(Long.valueOf(chatId), winAmount-currentBet);
+                userService.changeEarned(Long.valueOf(chatId),winAmount-currentBet);
                 gameCallback.sendMessage("🎉 Вы забрали выигрыш!\n" +
                                 "💎 Выигрыш: " + winAmount + " 🪙\n" +
                                 "💰 Новый баланс: " + newBalance + " 🪙\n\n" +
@@ -264,6 +267,8 @@ public class RideTheBus implements Game {
 
             if (success) {
                 int newBalance = userService.getUserBalance(Long.valueOf(chatId));
+                userService.changeWinAndEarnedRideTheBus(Long.valueOf(chatId), currentBet * 9);
+                userService.changeEarned(Long.valueOf(chatId), currentBet * 9);
                 gameCallback.sendMessage(getTableAsString() +
                                 "\n🎉 Поздравляем! Вы прошли все раунды!\n" +
                                 "💎 Выигрыш: " + winAmount + " 🪙\n" +
@@ -275,6 +280,7 @@ public class RideTheBus implements Game {
                 gameCallback.sendMessage("❌ Ошибка при выплате выигрыша", chatId, null);
             }
         } else {
+            userService.changeLossesAndLostRideTheBus(Long.valueOf(chatId), currentBet);
             Card lastCard = table[table.length - 1];
             gameCallback.sendMessage("❌ Неверно! Карта: " + (lastCard != null ? lastCard.getCard() : "") +
                             "\n" + getTableAsString() +
