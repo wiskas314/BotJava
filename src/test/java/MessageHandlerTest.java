@@ -1,5 +1,6 @@
 import org.example.controler.MessageHandler;
 
+import org.example.controler.db.UserService;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
@@ -17,8 +18,9 @@ class MessageHandlerTest {
 
         String message = "TEST";
         String username = "Bob";
+        Long chatID = 1234L;
 
-        String result = messageHandler.handleMessage(message, username);
+        String result = messageHandler.handleMessage(message, username,chatID);
 
         Assert.assertEquals("Вы написали: TEST", result);
     }
