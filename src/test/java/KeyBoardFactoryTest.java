@@ -193,7 +193,7 @@ class KeyBoardFactoryTest {
         InlineKeyboardMarkup keyboard = keyboardFactory.createReplenishKeyboard();
         Assert.assertEquals(1, keyboard.getKeyboard().size());
         Assert.assertEquals(1, keyboard.getKeyboard().get(0).size());
-        Assert.assertEquals(" Пополнить баланс +500", keyboard.getKeyboard().get(0).get(0).getText());
-        Assert.assertEquals("add_balance_500", keyboard.getKeyboard().get(0).get(0).getCallbackData());
+        Assert.assertEquals(" Пополнить баланс +1000", keyboard.getKeyboard().get(0).get(0).getText());
+        Assert.assertEquals("add_balance_1000", keyboard.getKeyboard().get(0).get(0).getCallbackData());
     }
 }

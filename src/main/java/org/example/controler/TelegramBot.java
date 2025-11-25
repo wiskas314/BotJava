@@ -20,14 +20,15 @@ import java.util.Map;
 /**
  * Класс телеграм-бота
  */
-public class TelegramBot extends TelegramLongPollingBot {
+public class TelegramBot extends TelegramLongPollingBot implements MessageSender {
+    private final BalanceService balanceService;
+    private final KeyboardFactory keyboardFactory;
     private Map<String, Game> activeGames;
     private final String botUsername;
     private final String botToken;
     private final MessageHandler messageHandler;
     public InlineKeyboardMarkup keyboard;
     private UserService userService;
-    private User user;
 
     /**
      * конструктор
@@ -40,6 +41,8 @@ public class TelegramBot extends TelegramLongPollingBot {
         this.activeGames = new HashMap<>();
         keyboard = null;
         userService = new UserService();
+        this.keyboardFactory = new KeyboardFactory();
+        this.balanceService = new BalanceService(userService, this, keyboardFactory);
     }
 
     @Override
@@ -50,46 +53,31 @@ public class TelegramBot extends TelegramLongPollingBot {
                 String chatId = callbackQuery.getMessage().getChatId().toString();
                 Long userId = callbackQuery.getFrom().getId();
                 String callbackData = callbackQuery.getData();
+
                 userService.getOrCreateUser(userId, callbackQuery.getFrom().getUserName());
 
                 if (callbackData.equals("ride_the_bus")) {
                     activeGames.remove(chatId);
                     RideTheBus game = new RideTheBus();
-                    game.setUser(userId);
+                    game.setGameCallback(this);
                     activeGames.put(chatId, game);
-                    game.startGame(chatId, this);
+                    game.startGame(chatId);
                     return;
                 }
 
                 if (callbackData.equals("black_jack")) {
                     activeGames.remove(chatId);
                     BlackJack game = new BlackJack();
-                    game.setUser(userId);
+                    game.setGameCallback(this);
                     activeGames.put(chatId, game);
-                    game.startGame(chatId, this);
+                    game.startGame(chatId);
                     return;
-                }
-
-                if (callbackData.equals("black_jack_stat")) {
-                    String text = "Количество побед - поражений: " + String.valueOf(userService.getBjWins(userId)) + "-" +
-                            String.valueOf(userService.getBjLosses(userId)) + "\n" +
-                            "Выиграно-проиграно:  " + String.valueOf(userService.getBjEarned(userId)) + "-" +
-                            String.valueOf(userService.getBjLost(userId));
-                    sendMessage(text, chatId, null);
-                }
-
-                if (callbackData.equals("ride_the_bus_stat")) {
-                    String text = "Количество побед - поражений:  " + String.valueOf(userService.getRtbWins(userId)) + "-" +
-                            String.valueOf(userService.getRtbLosses(userId)) + "\n" +
-                            "Выиграно-проиграно:  " + String.valueOf(userService.getRtbEarned(userId)) + "-" +
-                            String.valueOf(userService.getRtbLost(userId));
-                    sendMessage(text, chatId, null);
                 }
 
                 if (callbackData.equals("exit")) {
                     Game game = activeGames.get(chatId);
                     if (game != null) {
-                        game.processUserChoice(callbackData, this);
+                        game.processUserChoice(callbackData);
                         return;
                     }
                 }
@@ -97,31 +85,13 @@ public class TelegramBot extends TelegramLongPollingBot {
                 if (callbackData.startsWith("bet_")) {
                     Game game = activeGames.get(chatId);
                     if (game != null) {
-                        game.processBet(callbackData, this);
+                        game.processBet(callbackData);
                         return;
                     }
                 }
 
                 if (callbackData.equals("add_balance_1000")) {
-                    Long userID = callbackQuery.getFrom().getId();
-                    user = userService.getOrCreateUser(userID, callbackQuery.getFrom().getUserName());
-                    KeyboardFactory keyboardFactory = new KeyboardFactory();
-                    boolean success = userService.payWinnings(userID, 1000);
-
-                    if (success) {
-                        int newBalance = userService.getUserBalance(userID);
-                        sendMessage(
-                                "Баланс пополнен на 1000\nНовый баланс: " + newBalance,
-                                chatId,
-                                keyboardFactory.createGameSelectionKeyboard()
-                        );
-                    } else {
-                        sendMessage(
-                                "Ошибка при пополнении баланса",
-                                chatId,
-                                keyboardFactory.createGameSelectionKeyboard()
-                        );
-                    }
+                    balanceService.handleBalanceReplenishment(callbackQuery);
                     return;
                 }
 
@@ -131,7 +101,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                         activeGames.remove(chatId);
                         return;
                     }
-                    currentGame.processUserChoice(callbackData, this);
+                    currentGame.processUserChoice(callbackData);
                     return;
                 }
             }
@@ -143,24 +113,11 @@ public class TelegramBot extends TelegramLongPollingBot {
                 String text = userMessage.getText();
 
                 if (text.equals("/play")) {
-                    KeyboardFactory keyboardFactory = new KeyboardFactory();
-                    SendMessage message = new SendMessage();
-                    message.setChatId(chatId);
-                    message.setText("Выберите игру:");
-                    message.setReplyMarkup(keyboardFactory.createGameSelectionKeyboard());
-                    sender(message);
-                }else if(text.equals("/balance")){
-                    KeyboardFactory keyboardFactory =new KeyboardFactory();
-                    sendMessage("Ваш баланс "+ userService.getUserBalance(chatId), String.valueOf(chatId),
-                            keyboardFactory.createReplenishKeyboard());
-                } else if (text.equals("/statistic")) {
-                    KeyboardFactory keyboardFactory = new KeyboardFactory();
-                    SendMessage message = new SendMessage();
-                    message.setChatId(chatId);
-                    message.setText("Выберите по какой игре показать статистику:");
-                    message.setReplyMarkup(keyboardFactory.createSelfStatFor());
-                    sender(message);
-                }else {
+                    sendMessage("Выберите игру", String.valueOf(chatId),
+                            keyboardFactory.createGameSelectionKeyboard());
+                } else if (text.equals("/balance")) {
+                    balanceService.handleBalanceCommand(chatId);
+                } else {
                     String responseText = messageHandler.handleMessage(text, userName, chatId);
                     SendMessage message = new SendMessage();
                     message.setChatId(chatId.toString());
@@ -170,12 +127,11 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
         } catch (Exception e) {
             System.err.println("Произошла ошибка при обработке обновления: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    /**
-     * Отправка сообщения с текстом и клавиатурой
-     */
+    @Override
     public void sendMessage(String text, String chatID, InlineKeyboardMarkup markup) {
         SendMessage message = new SendMessage();
         message.setChatId(chatID);
