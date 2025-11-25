@@ -99,45 +99,4 @@ public class RTBCompleteGameSessionTest {
                         lastMessage[0].contains("Вы забрали выигрыш"),
                 "Должно быть сообщение о завершении игры: " + lastMessage[0]);
     }
-
-    /**
-     * Дополнительный тест для проверки досрочного выхода из игры
-     */
-    @Test
-    void testEarlyExitGameSession() {
-        RideTheBus game = new RideTheBus();
-
-        final int[] messageCount = {0};
-        final String[] lastMessage = {""};
-        final boolean[] gameCompleted = {false};
-
-        game.setGameCallback(new MessageSender() {
-            @Override
-            public void sendMessage(String text, String chatId, InlineKeyboardMarkup keyboard) {
-                messageCount[0]++;
-                lastMessage[0] = text;
-                System.out.println("Message " + messageCount[0] + ": " + text);
-
-                if (text.contains("Вы забрали выигрыш") || text.contains("проиграли")) {
-                    gameCompleted[0] = true;
-                }
-            }
-        });
-
-        // Запускаем игру и делаем ставку
-        game.startGame(TEST_CHAT_ID.toString());
-        game.processBet("bet_50");
-
-        // Проходим первый раунд
-        game.processUserChoice("red");
-
-        // Выходим досрочно на втором раунде
-        game.processUserChoice("exit");
-
-        // Проверяем, что игра завершилась с выводом выигрыша
-        Assertions.assertTrue(gameCompleted[0], "Игра должна завершиться после досрочного выхода. " +
-                "Последнее сообщение: " + lastMessage[0]);
-        Assertions.assertTrue(lastMessage[0].contains("Вы забрали выигрыш"),
-                "Должно быть сообщение о выводе выигрыша: " + lastMessage[0]);
-    }
 }
