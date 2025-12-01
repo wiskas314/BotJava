@@ -28,10 +28,8 @@ public class ActiveTaskInfo {
     public Long getChatId() { return chatId; }
     public String getTaskType() { return taskType; }
     public String getDescription() { return description; }
-    public String getDifficulty() { return difficulty; }
     public int getReward() { return reward; }
     public int getTargetValue() { return targetValue; }
-    public int getCurrentValue() { return currentValue; }
     public LocalDate getAssignedDate() { return assignedDate; }
     public boolean isCompleted() { return completed; }
 

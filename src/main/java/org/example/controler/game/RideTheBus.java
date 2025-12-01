@@ -134,7 +134,6 @@ public class RideTheBus implements Game {
         deck.initializeDeck();
         betPlaced = false;
         currentBet = 0;
-        isGameOver = true;
         currentMultiplier = 1;
     }
 
@@ -289,5 +288,6 @@ public class RideTheBus implements Game {
                     keyboardFactory.createGameSelectionKeyboard());
         }
         resetGame();
+        isGameOver = true;
     }
 }

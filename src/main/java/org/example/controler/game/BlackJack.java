@@ -87,7 +87,6 @@ public class BlackJack implements Game {
         deck.initializeDeck();
         playerScore = 0;
         dealerScore = 0;
-        isGameOver = false;
         isPlayerTurn = true;
         currentBet = 0;
         betPlaced = false;
@@ -302,7 +301,7 @@ public class BlackJack implements Game {
                     "Хотите сыграть ещё?";
             gameCallback.sendMessage(lossMessage, chatId, keyboardFactory.createGameSelectionKeyboard());
         }
-        resetGame();
+        isGameOver = true;
     }
 
     @Override

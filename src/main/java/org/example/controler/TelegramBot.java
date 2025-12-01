@@ -68,20 +68,23 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 
                 if (callbackData.equals("ride_the_bus")) {
                     activeGames.remove(chatId);
+                    checkTaskProgressDelayed(userId);
                     RideTheBus game = new RideTheBus();
                     game.setGameCallback(this);
                     activeGames.put(chatId, game);
                     game.startGame(chatId);
-                    return;
+
                 }
 
                 if (callbackData.equals("black_jack")) {
                     activeGames.remove(chatId);
+                    checkTaskProgressDelayed(userId);
                     BlackJack game = new BlackJack();
                     game.setGameCallback(this);
                     activeGames.put(chatId, game);
                     game.startGame(chatId);
-                    return;
+
+
                 }
                 if (callbackData.equals("black_jack_stat")) {
                     String text = "Количество побед - поражений: " + String.valueOf(userService.getBjWins(userId)) + "-" +
@@ -89,6 +92,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                             "Выиграно-проиграно:  " + String.valueOf(userService.getBjEarned(userId)) + "-" +
                             String.valueOf(userService.getBjLost(userId));
                     sendMessage(text, chatId, null);
+                    return;
                 }
 
                 if (callbackData.equals("ride_the_bus_stat")) {
@@ -97,22 +101,23 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                             "Выиграно-проиграно:  " + String.valueOf(userService.getRtbEarned(userId)) + "-" +
                             String.valueOf(userService.getRtbLost(userId));
                     sendMessage(text, chatId, null);
+                    return;
                 }
                 if (callbackData.equals("exit")) {
                     Game game = activeGames.get(chatId);
                     if (game != null) {
                         game.processUserChoice(callbackData);
                         checkTaskProgressDelayed(userId);
-                        return;
                     }
+                    return;
                 }
 
                 if (callbackData.startsWith("bet_")) {
                     Game game = activeGames.get(chatId);
                     if (game != null) {
                         game.processBet(callbackData);
-                        return;
                     }
+                    return;
                 }
 
                 if (callbackData.equals("add_balance_1000")) {
@@ -122,14 +127,17 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 
                 Game currentGame = activeGames.get(chatId);
                 if (currentGame != null) {
+                    System.out.println("я В ПЕРВОМ IF " + chatId);
                     if (currentGame.getIsGameOver()) {
+                        System.out.println("Игра завершилась " + chatId);
                         checkTaskProgressDelayed(userId);
+                        System.out.println("Мы пошли в метод проверки " + chatId);
                         activeGames.remove(chatId);
-                        return;
+                        System.out.println("Вот уже игра удалилась " + chatId);
                     }
                     currentGame.processUserChoice(callbackData);
-                    return;
                 }
+                return;
             }
 
             if (update.hasMessage() && update.getMessage().hasText()) {
@@ -198,21 +206,14 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
      * Проверить прогресс заданий с задержкой (после игры)
      */
     private void checkTaskProgressDelayed(Long chatId) {
-        // Даем время на обновление БД после игры
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
+                System.out.println("Метод в тг боте, ща перейдет в тасксервис " + chatId);
                 taskService.checkTaskProgressAfterGame(chatId);
-            }
-        }, 500); // 0.5 секунды задержки
-    }
 
-    /**
-     * Метод для проверки прогресса заданий после игры
-     * Может вызываться из других мест при необходимости
-     */
-    public void checkTaskProgress(Long chatId) {
-        taskService.checkTaskProgressAfterGame(chatId);
+            }
+        }, 500);
     }
 
     @Override

@@ -42,6 +42,7 @@ public class TaskService {
     private TaskProgressState getTaskProgressState(Long chatId) {
         return taskStates.computeIfAbsent(chatId, id -> {
             // Используем методы UserService вместо User объекта
+
             return new TaskProgressState(
                     userService.getBjWins(id),
                     userService.getBjLosses(id),
@@ -62,9 +63,7 @@ public class TaskService {
      */
     public void checkTaskProgressAfterGame(Long chatId) {
         TaskProgressState oldState = getTaskProgressState(chatId);
-        if (oldState == null) return;
-
-        // Получаем текущее состояние через UserService
+        System.out.println("Мы уже в классе Таск сервис " + chatId);
         TaskProgressState newState = new TaskProgressState(
                 userService.getBjWins(chatId),
                 userService.getBjLosses(chatId),
@@ -78,13 +77,11 @@ public class TaskService {
                 userService.getUserEarned(chatId)
         );
 
-        // Проверяем активные задания
         ActiveTaskInfo activeTask = activeTasks.get(chatId);
         if (activeTask != null && !activeTask.isCompleted()) {
             checkTaskProgress(chatId, activeTask, oldState, newState);
         }
 
-        // Обновляем состояние
         taskStates.put(chatId, newState);
     }
 
@@ -93,7 +90,7 @@ public class TaskService {
      */
     private void checkTaskProgress(Long chatId, ActiveTaskInfo task,
                                    TaskProgressState oldState, TaskProgressState newState) {
-
+        System.out.println("Проверяем чче там поменялось в базе данных " + chatId);
         int progress = 0;
 
         switch (task.getTaskType()) {
@@ -123,9 +120,6 @@ public class TaskService {
                 break;
             case "EARN_ANY":
                 progress = newState.getEarned() - oldState.getEarned();
-                break;
-            case "WIN_STREAK":
-                // Для серии побед нужна отдельная логика
                 break;
         }
 
