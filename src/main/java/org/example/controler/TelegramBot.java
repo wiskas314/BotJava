@@ -3,6 +3,7 @@ package org.example.controler;
 import org.example.controler.game.BlackJack;
 import org.example.controler.game.Game;
 import org.example.controler.game.RideTheBus;
+import org.example.controler.tasks.TaskService;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -12,10 +13,12 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.example.controler.db.UserService;
-import org.example.controler.db.User;
+
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Класс телеграм-бота
@@ -29,6 +32,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     private final MessageHandler messageHandler;
     public InlineKeyboardMarkup keyboard;
     private UserService userService;
+    private final TaskService taskService;
 
     /**
      * конструктор
@@ -43,6 +47,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         userService = new UserService();
         this.keyboardFactory = new KeyboardFactory();
         this.balanceService = new BalanceService(userService, this, keyboardFactory);
+        this.taskService = new TaskService(userService, this, keyboardFactory);
     }
 
     @Override
@@ -55,6 +60,11 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                 String callbackData = callbackQuery.getData();
 
                 userService.getOrCreateUser(userId, callbackQuery.getFrom().getUserName());
+
+                if (callbackData.startsWith("task_")) {
+                    taskService.handleTaskSettingsCallback(userId, callbackData);
+                    return;
+                }
 
                 if (callbackData.equals("ride_the_bus")) {
                     activeGames.remove(chatId);
@@ -92,6 +102,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                     Game game = activeGames.get(chatId);
                     if (game != null) {
                         game.processUserChoice(callbackData);
+                        checkTaskProgressDelayed(userId);
                         return;
                     }
                 }
@@ -112,6 +123,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                 Game currentGame = activeGames.get(chatId);
                 if (currentGame != null) {
                     if (currentGame.getIsGameOver()) {
+                        checkTaskProgressDelayed(userId);
                         activeGames.remove(chatId);
                         return;
                     }
@@ -134,10 +146,15 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                 }else if (text.equals("/statistic")) {
                     sendMessage("Выберите по какой игре показать статистику:", String.valueOf(chatId),
                             keyboardFactory.createSelfStatFor());
+                }else if (text.equals("/task_settings")) {
+                    taskService.openTaskSettings(String.valueOf(chatId));
+                }else if (text.contains(":") && text.length() == 5 && text.indexOf(':') == 2) {
+                    taskService.handleTimeInput(chatId, text);
                 }else {
                     String responseText = messageHandler.handleMessage(text, userName, chatId);
                     SendMessage message = new SendMessage();
                     message.setChatId(chatId.toString());
+
                     message.setText(responseText);
                     sender(message);
                 }
@@ -175,6 +192,27 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         Chat chat = update.getMessage().getChat();
         String userName = (chat != null) ? chat.getFirstName() : "Неизвестный пользователь";
         return userName;
+    }
+
+    /**
+     * Проверить прогресс заданий с задержкой (после игры)
+     */
+    private void checkTaskProgressDelayed(Long chatId) {
+        // Даем время на обновление БД после игры
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                taskService.checkTaskProgressAfterGame(chatId);
+            }
+        }, 500); // 0.5 секунды задержки
+    }
+
+    /**
+     * Метод для проверки прогресса заданий после игры
+     * Может вызываться из других мест при необходимости
+     */
+    public void checkTaskProgress(Long chatId) {
+        taskService.checkTaskProgressAfterGame(chatId);
     }
 
     @Override

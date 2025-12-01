@@ -127,4 +127,56 @@ public class KeyboardFactory {
         return createKeyboard(buttons);
     }
 
+    /**
+     * Создает клавиатуру для настроек заданий
+     */
+    public InlineKeyboardMarkup createTaskSettingsKeyboard(boolean isEnabled, String time, String difficulty) {
+        String toggleText = isEnabled ? "❌ Выключить" : "✅ Включить";
+        String difficultyText = difficulty.equals("EASY") ? "ЛЕГКИЙ" : "СЛОЖНЫЙ";
+
+        String[][][] buttons = {
+                {
+                        {toggleText, "task_toggle"}
+                },
+                {
+                        {"⏰ " + time, "task_change_time"}
+                },
+                {
+                        {difficulty, "task_change_difficulty"},
+                        {"→ " + difficultyText, "task_change_difficulty"}
+                },
+                {
+                        {"💾 Сохранить", "task_save"}
+                }
+        };
+
+        return createKeyboard(buttons);
+    }
+
+    /**
+     * Создает клавиатуру для выбора времени
+     */
+    public InlineKeyboardMarkup createTimeSelectionKeyboard() {
+        String[][][] buttons = {
+                {
+                        {"9:00", "task_time_9"},
+                        {"14:00", "task_time_14"},
+                        {"20:00", "task_time_20"}
+                },
+                {
+                        {"↩️ Назад", "task_settings"}
+                }
+        };
+
+        return createKeyboard(buttons);
+    }
+
+    public InlineKeyboardMarkup createTaskClaimKeyboard() {
+        String[][][] buttons = {
+                {
+                        {"💰 Забрать награду!", "task_claim"}
+                }
+        };
+        return createKeyboard(buttons);
+    }
 }
