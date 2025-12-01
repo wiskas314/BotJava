@@ -36,7 +36,8 @@ public class MessageHandler {
                 /balance - Показывает ваш баланс
                 /statistic - Отображает вашу статистику
                 /statistic_all - Отображает вашу общую статистику
-                /top - Показывает топ 10 игроков""";
+                /top - Показывает топ 10 игроков
+                /task_settings - Настройка ежедневных заданий""";
                 case "/statistic_all":
                     int totalWins = userService.getBjWins(chatId) + userService.getRtbWins(chatId);
                     int totalLosses = userService.getBjLosses(chatId) + userService.getRtbLosses(chatId);
