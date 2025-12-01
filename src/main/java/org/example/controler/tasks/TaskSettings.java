@@ -16,15 +16,14 @@ public class TaskSettings {
 
     public TaskSettings(Long chatId) {
         this.chatId = chatId;
-        this.enabled = true; // По умолчанию включены
-        this.notificationHour = 14; // 14:00 по умолчанию
+        this.enabled = true;
+        this.notificationHour = 14;
         this.notificationMinute = 0;
-        this.difficulty = "EASY"; // По умолчанию легкий уровень
+        this.difficulty = "EASY";
         this.lastTaskDate = null;
         this.completedTasksCount = 0;
     }
 
-    // Геттеры и сеттеры
     public Long getChatId() {
         return chatId;
     }
@@ -67,25 +66,6 @@ public class TaskSettings {
         }
     }
 
-    public LocalDate getLastTaskDate() {
-        return lastTaskDate;
-    }
-
-    public void setLastTaskDate(LocalDate lastTaskDate) {
-        this.lastTaskDate = lastTaskDate;
-    }
-
-    public int getCompletedTasksCount() {
-        return completedTasksCount;
-    }
-
-    public void setCompletedTasksCount(int completedTasksCount) {
-        this.completedTasksCount = completedTasksCount;
-    }
-
-    public void incrementCompletedTasksCount() {
-        this.completedTasksCount++;
-    }
 
     /**
      * Получить время в формате строки (ЧЧ:ММ)
@@ -108,24 +88,6 @@ public class TaskSettings {
         return enabled ? "ВКЛЮЧЕНЫ" : "ВЫКЛЮЧЕНЫ";
     }
 
-    /**
-     * Проверить, нужно ли отправлять задание сегодня
-     */
-    public boolean shouldSendTaskToday() {
-        if (!enabled) {
-            return false;
-        }
-
-        // Если еще не отправляли задание сегодня
-        return lastTaskDate == null || !lastTaskDate.equals(LocalDate.now());
-    }
-
-    /**
-     * Обновить дату последнего задания
-     */
-    public void updateLastTaskDate() {
-        this.lastTaskDate = LocalDate.now();
-    }
 
     @Override
     public String toString() {

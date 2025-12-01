@@ -5,10 +5,12 @@ import java.util.Random;
 public class TaskGenerator {
     private final Random random = new Random();
 
+    /**
+     * выбор задач
+     */
     public ActiveTaskInfo generateTask(Long chatId, String difficulty, LocalDate date) {
         boolean isHard = "HARD".equals(difficulty);
 
-        // Список возможных заданий
         int taskIndex = random.nextInt(6);
 
         switch (taskIndex) {
@@ -29,6 +31,9 @@ public class TaskGenerator {
         }
     }
 
+    /**
+     *генерирует задачу на победы в bj
+     */
     private ActiveTaskInfo generateBlackjackWinTask(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 3 : 2;
         int reward = isHard ? 150 : 75;
@@ -44,6 +49,9 @@ public class TaskGenerator {
         );
     }
 
+    /**
+     *генерирует задачу в которой нужно сыграть в bj
+     */
     private ActiveTaskInfo generateBlackjackPlayTask(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 5 : 3;
         int reward = isHard ? 120 : 60;
@@ -59,6 +67,9 @@ public class TaskGenerator {
         );
     }
 
+    /**
+     *генерирует задачу в которой нужно заработать в bj
+     */
     private ActiveTaskInfo generateBlackjackEarnTask(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 500 : 250;
         int reward = isHard ? 200 : 100;
@@ -74,6 +85,9 @@ public class TaskGenerator {
         );
     }
 
+    /**
+     *генерирует задачу в которой нужно выиграть в rtb
+     */
     private ActiveTaskInfo generateRideTheBusWinTask(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 2 : 1;
         int reward = isHard ? 180 : 90;
@@ -89,6 +103,9 @@ public class TaskGenerator {
         );
     }
 
+    /**
+     * генерирует задачу сыграть в rtb
+     */
     private ActiveTaskInfo generateRideTheBusPlayTask(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 4 : 2;
         int reward = isHard ? 140 : 70;
@@ -104,6 +121,9 @@ public class TaskGenerator {
         );
     }
 
+    /**
+     *генерирует задачу на заработок
+     */
     private ActiveTaskInfo generateEarnAnyTask(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 750 : 400;
         int reward = isHard ? 250 : 125;

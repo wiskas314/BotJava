@@ -16,7 +16,7 @@ public class UserRepository {
      * Создание или получение пользователя
      */
     protected User createOrGetUser(Long chatId, String username) {
-         String sql = """
+        String sql = """
           INSERT OR IGNORE INTO users (
             chat_id, 
             username, 
@@ -54,41 +54,41 @@ public class UserRepository {
      * Получение пользователя по chatId
      */
     protected User getUserByChatId(Long chatId) {
-         String sql = """
+        String sql = """
         SELECT chat_id, username, balance,earned,
                bjWins, bjLosses, bjEarned, bjLost,
                rtbWins, rtbLosses, rtbEarned, rtbLost
         FROM users WHERE chat_id = ?
     """;
 
-         try (Connection conn = dbConfig.getConnection();
-              PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        try (Connection conn = dbConfig.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-             pstmt.setLong(1, chatId);
-             ResultSet rs = pstmt.executeQuery();
+            pstmt.setLong(1, chatId);
+            ResultSet rs = pstmt.executeQuery();
 
-             if (rs.next()) {
-                 User user = new User(
-                         rs.getLong("chat_id"),
-                         rs.getString("username"),
-                         rs.getInt("balance"),
-                         rs.getInt("earned"),
-                         rs.getInt("bjWins"),
-                         rs.getInt("bjLosses"),
-                         rs.getInt("bjEarned"),
-                         rs.getInt("bjLost"),
-                         rs.getInt("rtbWins"),
-                         rs.getInt("rtbLosses"),
-                         rs.getInt("rtbEarned"),
-                         rs.getInt("rtbLost")
-                 );
-                 return user;
-             }
-         } catch (SQLException e) {
-             System.err.println("Ошибка получения пользователя: " + e.getMessage());
-         }
-         return null;
-     };
+            if (rs.next()) {
+                User user = new User(
+                        rs.getLong("chat_id"),
+                        rs.getString("username"),
+                        rs.getInt("balance"),
+                        rs.getInt("earned"),
+                        rs.getInt("bjWins"),
+                        rs.getInt("bjLosses"),
+                        rs.getInt("bjEarned"),
+                        rs.getInt("bjLost"),
+                        rs.getInt("rtbWins"),
+                        rs.getInt("rtbLosses"),
+                        rs.getInt("rtbEarned"),
+                        rs.getInt("rtbLost")
+                );
+                return user;
+            }
+        } catch (SQLException e) {
+            System.err.println("Ошибка получения пользователя: " + e.getMessage());
+        }
+        return null;
+    };
 
 
     /**

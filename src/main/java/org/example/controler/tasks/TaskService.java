@@ -21,7 +21,7 @@ public class TaskService {
     private final MessageSender messageSender;
     private final KeyboardFactory keyboardFactory;
 
-    // Храним состояния заданий в памяти
+
     private final Map<Long, TaskProgressState> taskStates = new ConcurrentHashMap<>();
     private final Map<Long, ActiveTaskInfo> activeTasks = new ConcurrentHashMap<>();
     private final Map<Long, TaskSettings> taskSettingsMap = new ConcurrentHashMap<>();
@@ -41,8 +41,6 @@ public class TaskService {
      */
     private TaskProgressState getTaskProgressState(Long chatId) {
         return taskStates.computeIfAbsent(chatId, id -> {
-            // Используем методы UserService вместо User объекта
-
             return new TaskProgressState(
                     userService.getBjWins(id),
                     userService.getBjLosses(id),
@@ -171,10 +169,10 @@ public class TaskService {
             return;
         }
 
-        // Удаляем старое задание, если есть
+
         activeTasks.remove(chatId);
 
-        // Создаем новое задание
+
         ActiveTaskInfo newTask = new TaskGenerator().generateTask(
                 chatId,
                 settings.getDifficulty(),
@@ -184,7 +182,7 @@ public class TaskService {
         if (newTask != null) {
             activeTasks.put(chatId, newTask);
 
-            // Отправляем задание пользователю
+
             sendTaskToUser(chatId, newTask);
         }
     }
@@ -221,13 +219,13 @@ public class TaskService {
             return;
         }
 
-        // Выплачиваем награду через UserService
+
         boolean success = userService.payWinnings(chatId, task.getReward());
 
         if (success) {
             int newBalance = userService.getUserBalance(chatId);
 
-            // Обновляем статистику заработанного
+
             userService.changeEarned(chatId, task.getReward());
 
             String message = "🎉 *Награда получена!*\n\n" +
@@ -235,7 +233,7 @@ public class TaskService {
                     "💎 Новый баланс: " + newBalance + " 🪙\n\n" +
                     "Задание будет обновлено завтра!";
 
-            // Удаляем задание
+
             activeTasks.remove(chatId);
 
             messageSender.sendMessage(message, String.valueOf(chatId),
@@ -253,11 +251,11 @@ public class TaskService {
      * Запуск ежедневного планировщика
      */
     private void startDailyTaskScheduler() {
-        // Проверяем каждую минуту, не пора ли отправить задания
+
         scheduler.scheduleAtFixedRate(() -> {
             LocalTime now = LocalTime.now();
 
-            // Для каждого пользователя проверяем время
+
             for (Long chatId : getAllUsersWithTasks()) {
                 TaskSettings settings = getOrCreateTaskSettings(chatId);
 
@@ -265,7 +263,7 @@ public class TaskService {
                         now.getHour() == settings.getNotificationHour() &&
                         now.getMinute() == settings.getNotificationMinute()) {
 
-                    // Проверяем, не отправляли ли сегодня уже
+
                     ActiveTaskInfo currentTask = activeTasks.get(chatId);
                     if (currentTask == null || !currentTask.getAssignedDate().equals(LocalDate.now())) {
                         createNewTaskForUser(chatId);
@@ -279,7 +277,6 @@ public class TaskService {
      * Получить всех пользователей с активными заданиями
      */
     private Set<Long> getAllUsersWithTasks() {
-        // Возвращаем пользователей, у которых есть настройки заданий
         return new HashSet<>(taskSettingsMap.keySet());
     }
 
@@ -434,17 +431,4 @@ public class TaskService {
         }
     }
 
-    /**
-     * Завершить работу сервиса
-     */
-    public void shutdown() {
-        scheduler.shutdown();
-    }
-
-    /**
-     * Получить активное задание пользователя (для тестов)
-     */
-    public ActiveTaskInfo getActiveTask(Long chatId) {
-        return activeTasks.get(chatId);
-    }
 }
