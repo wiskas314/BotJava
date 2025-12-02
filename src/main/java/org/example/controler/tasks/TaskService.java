@@ -308,7 +308,7 @@ public class TaskService {
         return keyboardFactory.createTaskSettingsKeyboard(
                 settings.isEnabled(),
                 settings.getFormattedTime(),
-                settings.getDifficultyInRussian()
+                settings.getDifficulty()
         );
     }
 
