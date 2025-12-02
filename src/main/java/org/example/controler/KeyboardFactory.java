@@ -132,7 +132,7 @@ public class KeyboardFactory {
      */
     public InlineKeyboardMarkup createTaskSettingsKeyboard(boolean isEnabled, String time, String difficulty) {
         String toggleText = isEnabled ? "❌ Выключить" : "✅ Включить";
-        String difficultyText = difficulty.equals("EASY") ? "ЛЕГКИЙ" : "СЛОЖНЫЙ";
+        String difficultyText = difficulty.equals("EASY") ? "СЛОЖНЫЙ" : "ЛЕГКИЙ";
 
         String[][][] buttons = {
                 {
