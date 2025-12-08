@@ -2,19 +2,24 @@ package org.example.controler;
 
 import org.example.controler.cards.Card;
 import org.example.controler.cards.Deck;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.example.controler.dto.ButtonData;
+import org.example.controler.dto.GameMessage;
+import org.example.controler.dto.GameResponse;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Класс Реализующий игру в Ride The Bus
  */
-public class RideTheBus {
+public class RideTheBus implements Game {
     private Deck deck;
     private String specialCard;
     private final KeyboardFactory keyboardFactory;
     private String chatId;
     private boolean isGameOver;
     private boolean isProcessing;
-    private GameCallBack gameCallback;
+    private MessageSender gameCallback;
 
     public RideTheBus() {
         keyboardFactory = new KeyboardFactory();
@@ -22,13 +27,6 @@ public class RideTheBus {
         isGameOver = false;
         isProcessing = false;
         deck = new Deck(4);
-    }
-
-    /**
-     * Устанавливает callback для взаимодействия с внешним миром
-     */
-    public void setGameCallback(GameCallBack callback) {
-        this.gameCallback = callback;
     }
 
     /**
@@ -62,7 +60,7 @@ public class RideTheBus {
 
                 return ((cardSuit.equals("♥️") && message.equals("hearts")) ||
                         (cardSuit.equals("♦️") && message.equals("diamonds")) ||
-                        (cardSuit.equals("♠️") && message.equals("peacks")) ||
+                        (cardSuit.equals("♠️") && message.equals("peaks")) ||
                         (cardSuit.equals("♣️") && message.equals("clubs")));
         }
         return true;
@@ -71,9 +69,11 @@ public class RideTheBus {
     /**
      * Начало игры
      */
-    public void startGame(String chatId) {
+    @Override
+    public GameResponse startGame(String chatId) {
         this.chatId = chatId;
-        play();
+        this.isGameOver = false;
+        return play();
     }
 
     /**
@@ -91,59 +91,104 @@ public class RideTheBus {
     /**
      * Геттер isGameOver
      */
+    @Override
     public boolean IsGameOver(){
         return isGameOver;
+    }
+
+    @Override
+    public String getGameType() {
+        return "RideTheBus";
     }
 
     /**
      * Метод реализующий интерфейс во время игры
      */
-    private void play() {
-        if (gameCallback == null || chatId == null) {
-            System.err.println("GameCallback or chatId is null in play()");
-            return;
-        }
+    private GameResponse play() {
 
         String roundText = "";
-        InlineKeyboardMarkup keyboard = null;
+        List<List<ButtonData>> keyboard = null;
 
         switch (deck.roundNumber) {
             case 1:
                 roundText = "Раунд 1 \nВыберите цвет:";
-                keyboard = keyboardFactory.keyboardFirstRound();
+                keyboard = createDynamicRoundKeyboard();
                 break;
 
             case 2:
                 roundText = "Раунд 2 \nВыберите будет ли следующая карта старшей или младшей масти:";
-                keyboard = keyboardFactory.createHigherLowerKeyboard();
+                keyboard = createDynamicRoundKeyboard();
                 break;
 
             case 3:
                 roundText = "Раунд 3 \nВыберите будет ли следующая карта внутри или вне диапазона:";
-                keyboard = keyboardFactory.createRangeKeyboard();
+                keyboard = createDynamicRoundKeyboard();
                 break;
 
             case 4:
                 roundText = "Раунд 4 \nВыберите какой масти будет следующая карта:";
-                keyboard = keyboardFactory.createSuitGuessKeyboard();
+                keyboard = createDynamicRoundKeyboard();
                 break;
-
-            case 5:
-                handleGameOver(true);
-                return;
         }
 
-        if (keyboard != null) {
-            gameCallback.sendGameMessage(chatId,roundText + "\n" + deck.getTableAsString() + " " + specialCard, keyboard);
+        GameMessage message = new GameMessage(chatId,roundText + "\n" + deck.getTableAsString() + " " + specialCard,keyboard);
+        return new GameResponse(message,false);
+    }
+    private List<List<ButtonData>> createDynamicRoundKeyboard(){
+        List<List<ButtonData>> buttonRows = new ArrayList<>();
+        switch (deck.roundNumber){
+            case 1:
+                List<ButtonData> round1Butons=new ArrayList<>();
+                round1Butons.add(new ButtonData("Красный","red"));
+                round1Butons.add(new ButtonData("Черный","black"));
+                buttonRows.add(round1Butons);
+                break;
+            case 2:
+                List<ButtonData> round2Butons=new ArrayList<>();
+                round2Butons.add(new ButtonData("Выше","higher"));
+                round2Butons.add(new ButtonData("Ниже","lower"));
+                buttonRows.add(round2Butons);
+                break;
+            case 3:
+                List<ButtonData> round3Butons=new ArrayList<>();
+                round3Butons.add(new ButtonData("Внутри диапазона","inside"));
+                round3Butons.add(new ButtonData("Вне диапазона","outside"));
+                buttonRows.add(round3Butons);
+                break;
+            case 4:
+                List<ButtonData> round4Butons =new ArrayList<>();
+                round4Butons.add(new ButtonData("♥ Черви","hearts"));
+                round4Butons.add(new ButtonData("♦ Бубны","diamonds"));
+                buttonRows.add(round4Butons);
+                List<ButtonData> secondround4Butons =new ArrayList<>();
+                secondround4Butons.add(new ButtonData("♣ Трефы","clubs"));
+                secondround4Butons.add(new ButtonData("♠ Пики","peaks"));
+                buttonRows.add(secondround4Butons);
+                break;
         }
+        return buttonRows;
+    }
+    /**
+     * Создание кнопок для выбора игры
+     */
+    private List<List<ButtonData>> createGameSelectionButtons() {
+        List<List<ButtonData>> buttons = new ArrayList<>();
+        List<ButtonData> row = new ArrayList<>();
+        row.add(new ButtonData("🎮 Ride the Bus", "ride_the_bus"));
+        buttons.add(row);
+        return buttons;
     }
 
     /**
      * Метод для обработки выбора пользователя
      */
-    public void processUserChoice(String callbackData) {
-        if (isGameOver || gameCallback == null) {
-            return;
+    public GameResponse processUserChoice(String callbackData) {
+
+        if (isGameOver) {
+            return new GameResponse(
+                    new GameMessage(chatId, "Игра уже завершена", null),
+                    true
+            );
         }
 
         Card card = deck.dealCard();
@@ -151,43 +196,36 @@ public class RideTheBus {
         boolean isWin = checkWin(callbackData, card);
 
         if (isWin) {
-            gameCallback.sendGameMessage(
-                    chatId,
-                    deck.getTableAsString() + "\nПоздравляем, вы выиграли!",
-                    null
-            );
-
             if (deck.roundNumber == 4) {
-                handleGameOver(true);
+                isGameOver = true;
+                return handleGameOver(true);
             } else {
                 deck.roundNumber++;
-                play();
+                return play();
             }
         } else {
-            handleGameOver(false);
+            isGameOver = true;
+            return handleGameOver(false);
         }
     }
+
+
 
     /**
      * Обработка конца игры
      */
-    private void handleGameOver(boolean isWinner) {
-        if (gameCallback == null) return;
-
+    private GameResponse handleGameOver(boolean isWinner) {
+        String messageText;
         if (isWinner) {
-            gameCallback.sendGameMessage(
-                    chatId,
-                    deck.getTableAsString() + "\nВы прошли все раунды! 🎉\nХотите выбрать другую игру?",
-
-                    keyboardFactory.createGameSelectionKeyboard()
-            );
+            messageText = deck.getTableAsString() + "\nВы прошли все раунды! 🎉\nХотите выбрать другую игру?";
         } else {
-            gameCallback.sendGameMessage(
-                    chatId,
-                    deck.getTableAsString() + "\nК сожалению, вы проиграли! Хотите сыграть снова?",
-                    keyboardFactory.createGameSelectionKeyboard()
-            );
+            messageText = deck.getTableAsString() + "\nК сожалению, вы проиграли! Хотите сыграть снова?";
         }
+
+        List<List<ButtonData>> keyboardButtons = createGameSelectionButtons();
+        GameMessage message = new GameMessage(chatId, messageText, keyboardButtons);
+
         resetGame();
+        return new GameResponse(message, true);
     }
 }
