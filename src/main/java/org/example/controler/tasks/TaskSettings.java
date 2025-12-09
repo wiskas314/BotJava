@@ -88,6 +88,15 @@ public class TaskSettings {
         return enabled ? "ВКЛЮЧЕНЫ" : "ВЫКЛЮЧЕНЫ";
     }
 
+    /**
+     * Проверить, нужно ли отправлять задание сегодня
+     */
+    public boolean shouldSendTaskToday() {
+        if (!enabled) {
+            return false;
+        }
+        return lastTaskDate == null || !lastTaskDate.equals(LocalDate.now());
+    }
 
     @Override
     public String toString() {

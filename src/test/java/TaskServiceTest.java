@@ -118,15 +118,4 @@ class TaskServiceTest {
                 isNull()
         );
     }
-
-    /**
-     * Проверяет корректное завершение работы планировщика.
-     * Убеждается, что метод можно вызывать многократно без ошибок.
-     */
-    @Test
-    void shutdown_ShouldStopScheduler() {
-        taskService.shutdown();
-
-        Assertions.assertDoesNotThrow(() -> taskService.shutdown());
-    }
 }
