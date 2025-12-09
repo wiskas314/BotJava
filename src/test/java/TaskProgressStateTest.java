@@ -1,6 +1,7 @@
 import org.example.controler.tasks.TaskProgressState;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * Проверяет корректность хранения и получения статистики прогресса.
@@ -30,16 +31,16 @@ class TaskProgressStateTest {
                 balance, earned
         );
 
-        assertEquals(bjWins, state.getBjWins());
-        assertEquals(bjLosses, state.getBjLosses());
-        assertEquals(bjEarned, state.getBjEarned());
-        assertEquals(bjLost, state.getBjLost());
-        assertEquals(rtbWins, state.getRtbWins());
-        assertEquals(rtbLosses, state.getRtbLosses());
-        assertEquals(rtbEarned, state.getRtbEarned());
-        assertEquals(rtbLost, state.getRtbLost());
-        assertEquals(balance, state.getBalance());
-        assertEquals(earned, state.getEarned());
+        Assertions.assertEquals(bjWins, state.getBjWins());
+        Assertions.assertEquals(bjLosses, state.getBjLosses());
+        Assertions.assertEquals(bjEarned, state.getBjEarned());
+        Assertions.assertEquals(bjLost, state.getBjLost());
+        Assertions.assertEquals(rtbWins, state.getRtbWins());
+        Assertions.assertEquals(rtbLosses, state.getRtbLosses());
+        Assertions.assertEquals(rtbEarned, state.getRtbEarned());
+        Assertions.assertEquals(rtbLost, state.getRtbLost());
+        Assertions.assertEquals(balance, state.getBalance());
+        Assertions.assertEquals(earned, state.getEarned());
     }
 
     /**
@@ -54,15 +55,15 @@ class TaskProgressStateTest {
                 3000, 2500
         );
 
-        assertEquals(10, state.getBjWins());
-        assertEquals(5, state.getBjLosses());
-        assertEquals(2000, state.getBjEarned());
-        assertEquals(1000, state.getBjLost());
-        assertEquals(7, state.getRtbWins());
-        assertEquals(3, state.getRtbLosses());
-        assertEquals(1500, state.getRtbEarned());
-        assertEquals(500, state.getRtbLost());
-        assertEquals(3000, state.getBalance());
-        assertEquals(2500, state.getEarned());
+        Assertions.assertEquals(10, state.getBjWins());
+        Assertions.assertEquals(5, state.getBjLosses());
+        Assertions.assertEquals(2000, state.getBjEarned());
+        Assertions.assertEquals(1000, state.getBjLost());
+        Assertions.assertEquals(7, state.getRtbWins());
+        Assertions.assertEquals(3, state.getRtbLosses());
+        Assertions.assertEquals(1500, state.getRtbEarned());
+        Assertions.assertEquals(500, state.getRtbLost());
+        Assertions.assertEquals(3000, state.getBalance());
+        Assertions.assertEquals(2500, state.getEarned());
     }
 }

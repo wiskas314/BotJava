@@ -1,7 +1,7 @@
 import org.example.controler.tasks.ActiveTaskInfo;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * Проверяет логику работы с прогрессом выполнения заданий.
@@ -25,11 +25,11 @@ class ActiveTaskInfoTest {
         );
 
         task.incrementProgress(2);
-        assertFalse(task.isCompleted(), "Задание не должно быть выполнено после 2/3");
+        Assertions.assertFalse(task.isCompleted(), "Задание не должно быть выполнено после 2/3");
 
         task.incrementProgress(1);
 
-        assertTrue(task.isCompleted(), "Задание должно быть выполнено после достижения цели");
+        Assertions.assertTrue(task.isCompleted(), "Задание должно быть выполнено после достижения цели");
     }
 
     /**
@@ -49,7 +49,7 @@ class ActiveTaskInfoTest {
 
         task.incrementProgress(3);
 
-        assertFalse(task.isCompleted(), "Задание не должно быть выполнено при 3/5");
+        Assertions.assertFalse(task.isCompleted(), "Задание не должно быть выполнено при 3/5");
     }
 
     /**
@@ -70,6 +70,6 @@ class ActiveTaskInfoTest {
 
         task.incrementProgress(5);
 
-        assertTrue(task.isCompleted(), "Задание должно быть выполнено даже с лишним прогрессом");
+        Assertions.assertTrue(task.isCompleted(), "Задание должно быть выполнено даже с лишним прогрессом");
     }
 }

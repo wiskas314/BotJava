@@ -1,8 +1,9 @@
 import org.example.controler.tasks.ActiveTaskInfo;
 import org.example.controler.tasks.TaskGenerator;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * Проверяет корректность генерации ежедневных заданий.
@@ -22,12 +23,12 @@ class TaskGeneratorTest {
 
         ActiveTaskInfo task = taskGenerator.generateTask(chatId, "EASY", date);
 
-        assertNotNull(task);
-        assertEquals(chatId, task.getChatId());
-        assertEquals(date, task.getAssignedDate());
-        assertTrue(task.getReward() > 0);
-        assertTrue(task.getTargetValue() > 0);
-        assertNotNull(task.getDescription());
+        Assertions.assertNotNull(task);
+        Assertions.assertEquals(chatId, task.getChatId());
+        Assertions.assertEquals(date, task.getAssignedDate());
+        Assertions.assertTrue(task.getReward() > 0);
+        Assertions.assertTrue(task.getTargetValue() > 0);
+        Assertions.assertNotNull(task.getDescription());
     }
 
     /**
@@ -50,7 +51,7 @@ class TaskGeneratorTest {
                 .distinct()
                 .count();
 
-        assertTrue(uniqueDescriptions >= 2,
+        Assertions.assertTrue(uniqueDescriptions >= 2,
                 "Должны генерироваться разные типы заданий");
     }
 }

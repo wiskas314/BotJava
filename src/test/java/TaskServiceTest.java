@@ -2,6 +2,7 @@ import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
 import org.example.controler.db.UserService;
 import org.example.controler.tasks.TaskService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,8 +10,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import org.junit.jupiter.api.Assertions;
+import org.mockito.ArgumentMatchers;
 import static org.mockito.Mockito.*;
 
 /**
@@ -91,7 +92,7 @@ class TaskServiceTest {
         when(keyboardFactory.createTaskSettingsKeyboard(anyBoolean(), anyString(), anyString()))
                 .thenReturn(mock(InlineKeyboardMarkup.class));
 
-        assertDoesNotThrow(() -> taskService.handleTimeInput(chatId, validTime));
+        Assertions.assertDoesNotThrow(() -> taskService.handleTimeInput(chatId, validTime));
 
         verify(messageSender, atLeastOnce()).sendMessage(
                 anyString(),
@@ -126,6 +127,6 @@ class TaskServiceTest {
     void shutdown_ShouldStopScheduler() {
         taskService.shutdown();
 
-        assertDoesNotThrow(() -> taskService.shutdown());
+        Assertions.assertDoesNotThrow(() -> taskService.shutdown());
     }
 }

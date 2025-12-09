@@ -1,6 +1,7 @@
 import org.example.controler.tasks.TaskSettings;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Assertions;
 
 /**
  * Проверяет корректность работы настроек ежедневных заданий.
@@ -15,13 +16,13 @@ class TaskSettingsTest {
     void constructor_ShouldSetDefaultValues() {
         TaskSettings settings = new TaskSettings(12345L);
 
-        assertTrue(settings.isEnabled());
-        assertEquals(14, settings.getNotificationHour());
-        assertEquals(0, settings.getNotificationMinute());
-        assertEquals("EASY", settings.getDifficulty());
-        assertEquals("14:00", settings.getFormattedTime());
-        assertEquals("ВКЛЮЧЕНЫ", settings.getStatusInRussian());
-        assertEquals("ЛЕГКИЙ", settings.getDifficultyInRussian());
+        Assertions. assertTrue(settings.isEnabled());
+        Assertions.assertEquals(14, settings.getNotificationHour());
+        Assertions.assertEquals(0, settings.getNotificationMinute());
+        Assertions.assertEquals("EASY", settings.getDifficulty());
+        Assertions.assertEquals("14:00", settings.getFormattedTime());
+        Assertions.assertEquals("ВКЛЮЧЕНЫ", settings.getStatusInRussian());
+        Assertions.assertEquals("ЛЕГКИЙ", settings.getDifficultyInRussian());
     }
 
     /**
@@ -35,9 +36,9 @@ class TaskSettingsTest {
         settings.setNotificationHour(9);
         settings.setNotificationMinute(30);
 
-        assertEquals(9, settings.getNotificationHour());
-        assertEquals(30, settings.getNotificationMinute());
-        assertEquals("09:30", settings.getFormattedTime());
+        Assertions.assertEquals(9, settings.getNotificationHour());
+        Assertions.assertEquals(30, settings.getNotificationMinute());
+        Assertions.assertEquals("09:30", settings.getFormattedTime());
     }
 
     /**
@@ -53,9 +54,9 @@ class TaskSettingsTest {
         settings.setNotificationHour(25);
         settings.setNotificationMinute(70);
 
-        assertEquals(originalHour, settings.getNotificationHour(),
+        Assertions.assertEquals(originalHour, settings.getNotificationHour(),
                 "Неверный час не должен измениться");
-        assertEquals(originalMinute, settings.getNotificationMinute(),
+        Assertions.assertEquals(originalMinute, settings.getNotificationMinute(),
                 "Неверная минута не должна измениться");
     }
 
@@ -69,8 +70,8 @@ class TaskSettingsTest {
 
         settings.setDifficulty("HARD");
 
-        assertEquals("HARD", settings.getDifficulty());
-        assertEquals("СЛОЖНЫЙ", settings.getDifficultyInRussian());
+        Assertions.assertEquals("HARD", settings.getDifficulty());
+        Assertions.assertEquals("СЛОЖНЫЙ", settings.getDifficultyInRussian());
     }
 
     /**
@@ -84,7 +85,7 @@ class TaskSettingsTest {
 
         settings.setDifficulty("INVALID");
 
-        assertEquals(originalDifficulty, settings.getDifficulty(),
+        Assertions.assertEquals(originalDifficulty, settings.getDifficulty(),
                 "Сложность не должна измениться при неверном значении");
     }
 
@@ -97,7 +98,7 @@ class TaskSettingsTest {
         TaskSettings settings = new TaskSettings(12345L);
         settings.setEnabled(true);
 
-        assertTrue(settings.shouldSendTaskToday(),
+        Assertions.assertTrue(settings.shouldSendTaskToday(),
                 "Должно отправлять задание, если включено и еще не отправляли сегодня");
     }
 
@@ -110,7 +111,7 @@ class TaskSettingsTest {
         TaskSettings settings = new TaskSettings(12345L);
         settings.setEnabled(false);
 
-        assertFalse(settings.shouldSendTaskToday(),
+        Assertions.assertFalse(settings.shouldSendTaskToday(),
                 "Не должно отправлять задание, если отключено");
     }
 }
