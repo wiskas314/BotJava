@@ -1,5 +1,8 @@
 package org.example.controler.dto;
 
+/**
+ * Класс, представляющий данные callback-запроса от Telegram
+ */
 public class CallbackData {
     private final String chatId;
     private final String callbackData;

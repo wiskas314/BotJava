@@ -1,7 +1,13 @@
 package org.example.controler;
 
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.example.controler.dto.KeyboardMarkup;
 
+/**
+ * Интерфейс для отправки сообщений
+ */
 public interface MessageSender {
-    void sendMessage(String text, String chatId, InlineKeyboardMarkup keyboard);
+    /**
+     *Отправляет сообщение в указанный чат
+     */
+    void sendMessage(String text, String chatId, KeyboardMarkup keyboard);
 }

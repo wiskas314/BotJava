@@ -1,5 +1,8 @@
 package org.example.controler.dto;
 
+/**
+ * класс представляющий данные входящего текстового сообщения от пользователя
+ */
 public class MessageData {
     private final String chatId;
     private final String text;

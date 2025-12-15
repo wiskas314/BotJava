@@ -2,6 +2,9 @@ package org.example.controler.dto;
 
 import java.util.List;
 
+/**
+ * класс представляющий сообщение игры, которое будет отправлено пользователю
+ */
 public class GameMessage {
     private final String chatId;
     private final String text;

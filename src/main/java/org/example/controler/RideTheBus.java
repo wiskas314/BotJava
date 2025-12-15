@@ -66,9 +66,7 @@ public class RideTheBus implements Game {
         return true;
     }
 
-    /**
-     * Начало игры
-     */
+
     @Override
     public GameResponse startGame(String chatId) {
         this.chatId = chatId;
@@ -88,9 +86,7 @@ public class RideTheBus implements Game {
         isProcessing = false;
     }
 
-    /**
-     * Геттер isGameOver
-     */
+
     @Override
     public boolean IsGameOver(){
         return isGameOver;
@@ -134,6 +130,10 @@ public class RideTheBus implements Game {
         GameMessage message = new GameMessage(chatId,roundText + "\n" + deck.getTableAsString() + " " + specialCard,keyboard);
         return new GameResponse(message,false);
     }
+
+    /**
+     *создает динамическую клавиатуру с кнопками выбора соответствующими текущему раунду игры
+     */
     private List<List<ButtonData>> createDynamicRoundKeyboard(){
         List<List<ButtonData>> buttonRows = new ArrayList<>();
         switch (deck.roundNumber){
@@ -179,9 +179,6 @@ public class RideTheBus implements Game {
         return buttons;
     }
 
-    /**
-     * Метод для обработки выбора пользователя
-     */
     public GameResponse processUserChoice(String callbackData) {
 
         if (isGameOver) {
@@ -208,8 +205,6 @@ public class RideTheBus implements Game {
             return handleGameOver(false);
         }
     }
-
-
 
     /**
      * Обработка конца игры
