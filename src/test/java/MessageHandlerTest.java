@@ -1,11 +1,11 @@
 import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
+import org.example.controler.dto.KeyboardMarkup;
 import org.example.controler.dto.MessageData;
 import org.example.controler.handlers.MessageHandler;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 /**
  * Тест обработки классом текста сообщения, отправленного пользователем
@@ -27,10 +27,10 @@ class MessageHandlerTest {
     private class TestMessageSender implements MessageSender {
         String lastMessage;
         String lastChatId;
-        InlineKeyboardMarkup lastKeyboard;
+        KeyboardMarkup lastKeyboard;
 
         @Override
-        public void sendMessage(String text, String chatId, InlineKeyboardMarkup keyboard) {
+        public void sendMessage(String text, String chatId, KeyboardMarkup keyboard) {
             this.lastMessage = text;
             this.lastChatId = chatId;
             this.lastKeyboard = keyboard;

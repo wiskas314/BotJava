@@ -1,5 +1,8 @@
 package org.example.controler.dto;
 
+/**
+ * класс представляющий данные для создания кнопки в телеграм инлайн-клавиатуре
+ */
 public class ButtonData {
     private final String text;
     private final  String callbackData;

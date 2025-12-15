@@ -1,6 +1,8 @@
 package org.example.controler;
 
+import org.example.controler.dto.ButtonData;
 import org.example.controler.dto.CallbackData;
+import org.example.controler.dto.KeyboardMarkup;
 import org.example.controler.dto.MessageData;
 import org.example.controler.handlers.CallbackHandler;
 import org.example.controler.handlers.MessageHandler;
@@ -11,9 +13,12 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,14 +60,39 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         }
     }
     @Override
-    public void sendMessage(String text, String chatID, InlineKeyboardMarkup markup) {
+    public void sendMessage(String text, String chatID, KeyboardMarkup markup) {
         SendMessage message = new SendMessage();
         message.setChatId(chatID);
         message.setText(text);
-        message.setReplyMarkup(markup);
+        message.setReplyMarkup(convertToTelegramKeyboard(markup));
         sender(message);
     }
 
+    /**
+     *конфертирует внутренее представление клавиатуры в формат телеграма
+     */
+    private InlineKeyboardMarkup convertToTelegramKeyboard(KeyboardMarkup markup){
+        if(markup == null || markup.keyboard ==null){
+            return null;
+        }
+        InlineKeyboardMarkup tgKeyboard = new InlineKeyboardMarkup();
+
+        List<List<InlineKeyboardButton>> telegramRows=new ArrayList<>();
+
+        for(List<ButtonData> row:markup.keyboard){
+            List<InlineKeyboardButton> telegramRow=new ArrayList<>();
+
+            for (ButtonData buttonData:row){
+                InlineKeyboardButton tgButton=new InlineKeyboardButton();
+                tgButton.setText(buttonData.getText());
+                tgButton.setCallbackData(buttonData.getCallbackData());
+                telegramRow.add(tgButton);
+            }
+            telegramRows.add(telegramRow);
+        }
+        tgKeyboard.setKeyboard(telegramRows);
+        return tgKeyboard;
+    }
     /**
      *обработка callback обновления
      */
@@ -74,6 +104,10 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         CallbackData data = new CallbackData(chatId,callbackData);
         callbackHandler.handleCallback(data);
     }
+
+    /**
+     *обработка текстовых обновлений
+     */
     private void handleTextMessage(Update update){
         Message userMessage = update.getMessage();
         String chatId = String.valueOf(userMessage.getChatId());

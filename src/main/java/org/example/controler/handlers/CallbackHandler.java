@@ -7,11 +7,13 @@ import org.example.controler.RideTheBus;
 import org.example.controler.dto.ButtonData;
 import org.example.controler.dto.CallbackData;
 import org.example.controler.dto.GameResponse;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
-
+import org.example.controler.dto.KeyboardMarkup;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * обработчик callback
+ */
 public class CallbackHandler {
     private final Map<String, Game> activeGames;
     private final MessageSender messageSender;
@@ -77,7 +79,7 @@ public class CallbackHandler {
             String text = response.getMessage().getText();
             List<List<ButtonData>> buttons = response.getMessage().getKeyboardButtons();
 
-            InlineKeyboardMarkup keyboard = null;
+            KeyboardMarkup keyboard = null;
             if (buttons != null && !buttons.isEmpty()) {
                 keyboard = keyboardFactory.createKeyboard(buttons);
             }

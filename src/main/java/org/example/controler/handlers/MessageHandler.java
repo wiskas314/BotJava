@@ -1,9 +1,12 @@
 package org.example.controler.handlers;
 
-
 import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
+import org.example.controler.dto.ButtonData;
+import org.example.controler.dto.KeyboardMarkup;
 import org.example.controler.dto.MessageData;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * класс для обрабатывания входящих сообщений и генерации ответа
@@ -46,11 +49,21 @@ public class MessageHandler {
         );
         messageSender.sendMessage(welcomeMessage, chatId, null);
     }
-
+    /**
+     * Обработка команды /play
+     */
     private void handlePlayCommand(String chatId){
-        messageSender.sendMessage("Выберите игру:", chatId,
-                keyboardFactory.createGameSelectionKeyboard());
+        List<List<ButtonData>> buttons = new ArrayList<>();
+        List<ButtonData> row = new ArrayList<>();
+        row.add(new ButtonData("🎮 Ride the Bus", "ride_the_bus"));
+        buttons.add(row);
+
+        KeyboardMarkup keyboard = keyboardFactory.createKeyboard(buttons);
+        messageSender.sendMessage("Выберите игру:", chatId, keyboard);
     }
+    /**
+     * Обработка команды /help
+     */
     private void handleHelpCommand(String chatId){
         messageSender.sendMessage("""
                 Вот список доступных команд:
