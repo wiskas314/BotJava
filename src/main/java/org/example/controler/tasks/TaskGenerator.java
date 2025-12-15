@@ -1,4 +1,6 @@
 package org.example.controler.tasks;
+
+import org.example.controler.tasks.dto.ActiveTaskInfoDTO;
 import java.time.LocalDate;
 import java.util.Random;
 
@@ -6,136 +8,154 @@ public class TaskGenerator {
     private final Random random = new Random();
 
     /**
-     * выбор задач
+     * Выбор задач
      */
-    public ActiveTaskInfo generateTask(Long chatId, String difficulty, LocalDate date) {
+    public ActiveTaskInfoDTO generateTaskDTO(Long chatId, String difficulty, LocalDate date) {
         boolean isHard = "HARD".equals(difficulty);
 
         int taskIndex = random.nextInt(6);
 
         switch (taskIndex) {
             case 0:
-                return generateBlackjackWinTask(chatId, isHard, date);
+                return generateBlackjackWinTaskDTO(chatId, isHard, date);
             case 1:
-                return generateBlackjackPlayTask(chatId, isHard, date);
+                return generateBlackjackPlayTaskDTO(chatId, isHard, date);
             case 2:
-                return generateBlackjackEarnTask(chatId, isHard, date);
+                return generateBlackjackEarnTaskDTO(chatId, isHard, date);
             case 3:
-                return generateRideTheBusWinTask(chatId, isHard, date);
+                return generateRideTheBusWinTaskDTO(chatId, isHard, date);
             case 4:
-                return generateRideTheBusPlayTask(chatId, isHard, date);
+                return generateRideTheBusPlayTaskDTO(chatId, isHard, date);
             case 5:
-                return generateEarnAnyTask(chatId, isHard, date);
+                return generateEarnAnyTaskDTO(chatId, isHard, date);
             default:
-                return generateBlackjackWinTask(chatId, isHard, date);
+                return generateBlackjackWinTaskDTO(chatId, isHard, date);
         }
     }
 
     /**
-     *генерирует задачу на победы в bj
+     * Генерирует задачу на победы в BJ
      */
-    private ActiveTaskInfo generateBlackjackWinTask(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfoDTO generateBlackjackWinTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 3 : 2;
         int reward = isHard ? 150 : 75;
 
-        return new ActiveTaskInfo(
+        return new ActiveTaskInfoDTO(
                 chatId,
                 "WIN_BLACKJACK",
                 "Выиграть " + target + " игры в Blackjack",
                 isHard ? "HARD" : "EASY",
                 reward,
                 target,
-                date
+                0, // currentValue
+                date,
+                false, // completed
+                0 // progressPercentage
         );
     }
 
     /**
-     *генерирует задачу в которой нужно сыграть в bj
+     * Генерирует задачу в которой нужно сыграть в BJ
      */
-    private ActiveTaskInfo generateBlackjackPlayTask(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfoDTO generateBlackjackPlayTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 5 : 3;
         int reward = isHard ? 120 : 60;
 
-        return new ActiveTaskInfo(
+        return new ActiveTaskInfoDTO(
                 chatId,
                 "PLAY_BLACKJACK",
                 "Сыграть " + target + " игр в Blackjack",
                 isHard ? "HARD" : "EASY",
                 reward,
                 target,
-                date
+                0,
+                date,
+                false,
+                0
         );
     }
 
     /**
-     *генерирует задачу в которой нужно заработать в bj
+     * Генерирует задачу в которой нужно заработать в BJ
      */
-    private ActiveTaskInfo generateBlackjackEarnTask(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfoDTO generateBlackjackEarnTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 500 : 250;
         int reward = isHard ? 200 : 100;
 
-        return new ActiveTaskInfo(
+        return new ActiveTaskInfoDTO(
                 chatId,
                 "EARN_BLACKJACK",
                 "Заработать " + target + " кредитов в Blackjack",
                 isHard ? "HARD" : "EASY",
                 reward,
                 target,
-                date
+                0,
+                date,
+                false,
+                0
         );
     }
 
     /**
-     *генерирует задачу в которой нужно выиграть в rtb
+     * Генерирует задачу в которой нужно выиграть в RTB
      */
-    private ActiveTaskInfo generateRideTheBusWinTask(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfoDTO generateRideTheBusWinTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 2 : 1;
         int reward = isHard ? 180 : 90;
 
-        return new ActiveTaskInfo(
+        return new ActiveTaskInfoDTO(
                 chatId,
                 "WIN_RIDE_THE_BUS",
                 "Выиграть " + target + " игры в Ride the Bus",
                 isHard ? "HARD" : "EASY",
                 reward,
                 target,
-                date
+                0,
+                date,
+                false,
+                0
         );
     }
 
     /**
-     * генерирует задачу сыграть в rtb
+     * Генерирует задачу сыграть в RTB
      */
-    private ActiveTaskInfo generateRideTheBusPlayTask(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfoDTO generateRideTheBusPlayTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 4 : 2;
         int reward = isHard ? 140 : 70;
 
-        return new ActiveTaskInfo(
+        return new ActiveTaskInfoDTO(
                 chatId,
                 "PLAY_RIDE_THE_BUS",
                 "Сыграть " + target + " игр в Ride the Bus",
                 isHard ? "HARD" : "EASY",
                 reward,
                 target,
-                date
+                0,
+                date,
+                false,
+                0
         );
     }
 
     /**
-     *генерирует задачу на заработок
+     * Генерирует задачу на заработок
      */
-    private ActiveTaskInfo generateEarnAnyTask(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfoDTO generateEarnAnyTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 750 : 400;
         int reward = isHard ? 250 : 125;
 
-        return new ActiveTaskInfo(
+        return new ActiveTaskInfoDTO(
                 chatId,
                 "EARN_ANY",
                 "Заработать " + target + " кредитов в любой игре",
                 isHard ? "HARD" : "EASY",
                 reward,
                 target,
-                date
+                0,
+                date,
+                false,
+                0
         );
     }
 }
