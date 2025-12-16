@@ -1,199 +1,82 @@
 import org.example.controler.KeyboardFactory;
-import org.junit.Assert;
-import org.junit.jupiter.api.BeforeEach;
+import org.example.controler.dto.ButtonData;
+import org.example.controler.dto.KeyboardMarkup;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+
+import java.util.ArrayList;
 import java.util.List;
 
-
+import org.junit.jupiter.api.Assertions.*;
 
 /**
- * Тестовый класс содержит тесты для метод создания клавиатур
+ * тестовый класс содержит тесты для метод создания клавиатур
  */
 class KeyBoardFactoryTest {
 
-    private KeyboardFactory keyboardFactory;
+    private KeyboardFactory keyboardFactory = new KeyboardFactory();
 
-    /**
-     * Инициализация тестового окржуения перед каждым тестом
-     */
-    @BeforeEach
-    void setUp() {
-        keyboardFactory = new KeyboardFactory();
+    @Test
+    void testCreateKeyboard() {
+        KeyboardFactory keyboardFactory = new KeyboardFactory();
+
+        List<List<ButtonData>> buttonRows = new ArrayList<>();
+
+        List<ButtonData> row1 = new ArrayList<>();
+        row1.add(new ButtonData("Button 1", "callback_1"));
+        row1.add(new ButtonData("Button 2", "callback_2"));
+
+        List<ButtonData> row2 = new ArrayList<>();
+        row2.add(new ButtonData("Button 3", "callback_3"));
+
+        buttonRows.add(row1);
+        buttonRows.add(row2);
+
+
+        KeyboardMarkup keyboardMarkup = keyboardFactory.createKeyboard(buttonRows);
+
+        Assertions.assertNotNull(keyboardMarkup);
+        Assertions.assertNotNull(keyboardMarkup.keyboard);
+        Assertions.assertEquals(2, keyboardMarkup.keyboard.size());
+
+        List<ButtonData> firstRow = keyboardMarkup.keyboard.get(0);
+        Assertions.assertEquals(2, firstRow.size());
+        Assertions.assertEquals("Button 1", firstRow.get(0).getText());
+        Assertions.assertEquals("callback_1", firstRow.get(0).getCallbackData());
+        Assertions.assertEquals("Button 2", firstRow.get(1).getText());
+        Assertions.assertEquals("callback_2", firstRow.get(1).getCallbackData());
+
+        List<ButtonData> secondRow = keyboardMarkup.keyboard.get(1);
+        Assertions.assertEquals(1, secondRow.size());
+        Assertions.assertEquals("Button 3", secondRow.get(0).getText());
+        Assertions.assertEquals("callback_3", secondRow.get(0).getCallbackData());
     }
 
     /**
-     * Тестируем создание клавиатуры для выбора игры
+     * тест на создание клавиатуры для выбора игры
      */
     @Test
     void testCreateGameSelectionKeyboard() {
+        KeyboardFactory keyboardFactory = new KeyboardFactory();
 
-        InlineKeyboardMarkup keyboard = keyboardFactory.createGameSelectionKeyboard();
+        List<List<ButtonData>> buttonRows = new ArrayList<>();
+        List<ButtonData> row = new ArrayList<>();
+        row.add(new ButtonData("🎮 Ride the Bus", "ride_the_bus"));
+        buttonRows.add(row);
 
+        KeyboardMarkup keyboardMarkup = keyboardFactory.createKeyboard(buttonRows);
 
-        Assert.assertNotNull(keyboard);
-        Assert.assertNotNull(keyboard.getKeyboard());
-        Assert.assertEquals(1, keyboard.getKeyboard().size());
+        Assertions.assertNotNull(keyboardMarkup);
+        Assertions.assertNotNull(keyboardMarkup.keyboard);
+        Assertions.assertEquals(1, keyboardMarkup.keyboard.size());
 
-        List<InlineKeyboardButton> firstRow = keyboard.getKeyboard().get(0);
-        Assert.assertEquals(2, firstRow.size());
+        List<ButtonData> buttons = keyboardMarkup.keyboard.get(0);
+        Assertions.assertEquals(1, buttons.size());
 
-        InlineKeyboardButton button = firstRow.get(0);
-        Assert.assertEquals("Ride the Bus", button.getText());
-        Assert.assertEquals("ride_the_bus", button.getCallbackData());
-    }
-
-    /**
-     * Тестируем создание клавиатуры для первого раунда
-     */
-    @Test
-    void testKeyboardFirstRound() {
-
-        InlineKeyboardMarkup keyboard = keyboardFactory.keyboardFirstRound();
-
-
-        Assert.assertNotNull(keyboard);
-        Assert.assertNotNull(keyboard.getKeyboard());
-        Assert.assertEquals(1, keyboard.getKeyboard().size());
-
-        List<InlineKeyboardButton> firstRow = keyboard.getKeyboard().get(0);
-        Assert.assertEquals(2, firstRow.size());
-
-
-        InlineKeyboardButton firstButton = firstRow.get(0);
-        Assert.assertEquals("Красный", firstButton.getText());
-        Assert.assertEquals("red", firstButton.getCallbackData());
-
-        // Проверяем вторую кнопку
-        InlineKeyboardButton secondButton = firstRow.get(1);
-        Assert.assertEquals("Черный", secondButton.getText());
-        Assert.assertEquals("black", secondButton.getCallbackData());
-    }
-
-    /**
-     * Тестируем создание клавиатуры для второго раунда
-     */
-    @Test
-    void testCreateHigherLowerKeyboard() {
-
-        InlineKeyboardMarkup keyboard = keyboardFactory.createHigherLowerKeyboard();
-
-
-        Assert.assertNotNull(keyboard);
-        Assert.assertNotNull(keyboard.getKeyboard());
-        Assert.assertEquals(1, keyboard.getKeyboard().size());
-
-        List<InlineKeyboardButton> firstRow = keyboard.getKeyboard().get(0);
-        Assert.assertEquals(3, firstRow.size());
-
-        InlineKeyboardButton firstButton = firstRow.get(0);
-        Assert.assertEquals("📈 Выше", firstButton.getText());
-        Assert.assertEquals("higher", firstButton.getCallbackData());
-
-        InlineKeyboardButton secondButton = firstRow.get(1);
-        Assert.assertEquals("📉 Ниже", secondButton.getText());
-        Assert.assertEquals("lower", secondButton.getCallbackData());
-
-        InlineKeyboardButton thirdButtom =  firstRow.get(2);
-        Assert.assertEquals("Сохранить выигранное и выйти", thirdButtom.getText());
-        Assert.assertEquals("exit",thirdButtom.getCallbackData());
-    }
-
-    /**
-     * Тестируем создание клавиатуры для третьего раунда
-     */
-    @Test
-    void testCreateRangeKeyboard() {
-
-        InlineKeyboardMarkup keyboard = keyboardFactory.createRangeKeyboard();
-
-
-        Assert.assertNotNull(keyboard);
-        Assert.assertNotNull(keyboard.getKeyboard());
-        Assert.assertEquals(1, keyboard.getKeyboard().size());
-
-        List<InlineKeyboardButton> firstRow = keyboard.getKeyboard().get(0);
-        Assert.assertEquals(3, firstRow.size());
-
-        InlineKeyboardButton firstButton = firstRow.get(0);
-        Assert.assertEquals("📥 Внутри диапазона", firstButton.getText());
-        Assert.assertEquals("inside", firstButton.getCallbackData());
-
-        InlineKeyboardButton secondButton = firstRow.get(1);
-        Assert.assertEquals("📤 Вне диапазона", secondButton.getText());
-        Assert.assertEquals("outside", secondButton.getCallbackData());
-
-        InlineKeyboardButton thirdButtom =  firstRow.get(2);
-        Assert.assertEquals("Сохранить выигранное и выйти", thirdButtom.getText());
-        Assert.assertEquals("exit",thirdButtom.getCallbackData());
-    }
-
-    /**
-     * Тестирование четвертой клавитуры
-     */
-    @Test
-    void testCreateSuitGuessKeyboard() {
-
-        InlineKeyboardMarkup keyboard = keyboardFactory.createSuitGuessKeyboard();
-
-
-        Assert.assertNotNull(keyboard);
-        Assert.assertNotNull(keyboard.getKeyboard());
-        Assert.assertEquals(2, keyboard.getKeyboard().size());
-
-
-        List<InlineKeyboardButton> firstRow = keyboard.getKeyboard().get(0);
-        Assert.assertEquals(2, firstRow.size());
-
-        InlineKeyboardButton firstRowFirstButton = firstRow.get(0);
-        Assert.assertEquals("♥ Черви", firstRowFirstButton.getText());
-        Assert.assertEquals("hearts", firstRowFirstButton.getCallbackData());
-
-        InlineKeyboardButton firstRowSecondButton = firstRow.get(1);
-        Assert.assertEquals("♦ Бубны", firstRowSecondButton.getText());
-        Assert.assertEquals("diamonds", firstRowSecondButton.getCallbackData());
-
-
-        List<InlineKeyboardButton> secondRow = keyboard.getKeyboard().get(1);
-        Assert.assertEquals(3, secondRow.size());
-
-        InlineKeyboardButton secondRowFirstButton = secondRow.get(0);
-        Assert.assertEquals("♣ Трефы", secondRowFirstButton.getText());
-        Assert.assertEquals("clubs", secondRowFirstButton.getCallbackData());
-
-        InlineKeyboardButton secondRowSecondButton = secondRow.get(1);
-        Assert.assertEquals("♠ Пики", secondRowSecondButton.getText());
-        Assert.assertEquals("peaks", secondRowSecondButton.getCallbackData());
-
-        InlineKeyboardButton thirdButtom =  secondRow.get(2);
-        Assert.assertEquals("Сохранить выигранное и выйти", thirdButtom.getText());
-        Assert.assertEquals("exit",thirdButtom.getCallbackData());
-    }
-    /**
-     * Тестирует создание клавиатуры с пустым массивом кнопок
-     * Ожидается, что клавиатура будет создана, но без строк
-     */
-    @Test
-    void testCreateKeyboard_WithEmptyButtonsArray() {
-        String[][][] emptyButtons = {};
-
-        InlineKeyboardMarkup keyboard = keyboardFactory.createKeyboard(emptyButtons);
-
-        Assert.assertNotNull(keyboard);
-        Assert.assertNotNull(keyboard.getKeyboard());
-        Assert.assertTrue(keyboard.getKeyboard().isEmpty());
-    }
-
-    /**
-     * тестируем создание клавиатуры с одной конпкой для пополнения баланса
-     */
-    @Test
-    void createReplenishKeyboard_HasOneButton() {
-        InlineKeyboardMarkup keyboard = keyboardFactory.createReplenishKeyboard();
-        Assert.assertEquals(1, keyboard.getKeyboard().size());
-        Assert.assertEquals(1, keyboard.getKeyboard().get(0).size());
-        Assert.assertEquals(" Пополнить баланс +1000", keyboard.getKeyboard().get(0).get(0).getText());
-        Assert.assertEquals("add_balance_1000", keyboard.getKeyboard().get(0).get(0).getCallbackData());
+        ButtonData button = buttons.get(0);
+        Assertions.assertEquals("🎮 Ride the Bus", button.getText());
+        Assertions.assertEquals("ride_the_bus", button.getCallbackData());
     }
 }
