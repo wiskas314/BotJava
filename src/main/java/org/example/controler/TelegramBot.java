@@ -150,9 +150,9 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
                 }else if (text.equals("/statistic")) {
                     sendMessage("Выберите по какой игре показать статистику:", String.valueOf(chatId),
                             keyboardFactory.createSelfStatFor());
-                }else if (text.equals("/task_settings")) {
+                } else if (text.equals("/task_settings")) {
                     taskService.openTaskSettings(String.valueOf(chatId));
-                }else if (text.contains(":") && text.length() == 5 && text.indexOf(':') == 2) {
+                } else if (isValidTimeFormat(text)) {
                     taskService.handleTimeInput(chatId, text);
                 }else {
                     String responseText = messageHandler.handleMessage(text, userName, chatId);
@@ -210,6 +210,14 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 
             }
         }, 500);
+    }
+
+    /**
+     * Проверка формата времени
+     */
+    private boolean isValidTimeFormat(String text) {
+        if (text.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$")) {return true;}
+        return false;
     }
 
     @Override
