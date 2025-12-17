@@ -2,7 +2,7 @@ import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
 import org.example.controler.db.UserService;
 import org.example.controler.tasks.TaskService;
-import org.example.controler.tasks.dto.ActiveTaskInfoDTO;
+import org.example.controler.dto.ActiveTaskInfoDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,15 +1,25 @@
 package org.example.controler.handlers;
 
-import org.example.controler.Game;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.example.controler.BalanceService;
+import org.example.controler.db.UserService;
+import org.example.controler.game.BlackJack;
+import org.example.controler.game.Game;
 import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
-import org.example.controler.RideTheBus;
+import org.example.controler.game.RideTheBus;
 import org.example.controler.dto.ButtonData;
 import org.example.controler.dto.CallbackData;
 import org.example.controler.dto.GameResponse;
 import org.example.controler.dto.KeyboardMarkup;
+import org.example.controler.tasks.TaskService;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+
+import javax.swing.text.Utilities;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * обработчик callback
@@ -18,16 +28,23 @@ public class CallbackHandler {
     private final Map<String, Game> activeGames;
     private final MessageSender messageSender;
     private final KeyboardFactory keyboardFactory;
+    private final TaskService taskService;
+    private final BalanceService balanceService;
+    private UserService userService;
 
-    public CallbackHandler(Map<String, Game> activeGames, MessageSender messageSender, KeyboardFactory keyboardFactory) {
+    public CallbackHandler(Map<String, Game> activeGames, MessageSender messageSender, KeyboardFactory keyboardFactory,
+                           TaskService taskService, UserService userService, BalanceService balanceService) {
         this.activeGames = activeGames;
         this.messageSender = messageSender;
         this.keyboardFactory = keyboardFactory;
+        this.taskService = taskService;
+        this.userService = userService;
+        this.balanceService = balanceService;
     }
     /**
      * Обработка callback данных
      */
-    public void handleCallback(CallbackData callbackData) {
+    public void handleCallback(CallbackData callbackData, String username) {
         String chatId = callbackData.getChatId();
         String callback = callbackData.getCallbackData();
 
@@ -35,11 +52,75 @@ public class CallbackHandler {
             startRideTheBus(chatId);
             return;
         }
+        if (callbackData.equals("black_jack")) {
+            startBlackJack(chatId);
+            return;
+        }
+        if (callback.startsWith("task_")) {
+            taskService.handleTaskSettingsCallback(NumberUtils.toLong(chatId), callback);
+            return;
+        }
 
+        if (callbackData.equals("black_jack_stat")) {
+            sendBJStat(chatId);
+            return;
+        }
+        if (callbackData.equals("ride_the_bus_stat")) {
+            sendRTBStat(chatId);
+            return;
+        }
+        if (callbackData.equals("exit")) {
+            endGame(chatId, callback);
+            return;
+        }
+        if (callback.startsWith("bet_")) {
+            Game game = activeGames.get(chatId);
+            if (game != null) {
+                game.processBet(callback);
+            }
+            return;
+        }
+
+        if (callbackData.equals("add_balance_1000")) {
+            balanceService.handleBalanceReplenishment(chatId, username);
+            return;
+        }
+        endGame(chatId, callback);
+        return;
+    }
+
+
+
+    private void endGame(String chatId, String callback){
         Game activeGame = activeGames.get(chatId);
         if (activeGame != null) {
-            handleActiveGameCallback(activeGame, chatId,callback);
+            handleActiveGameCallback(activeGame, chatId, callback);
         }
+    }
+
+    private void sendBJStat(String chatId){
+        String text = "Количество побед - поражений: " + String.valueOf(userService.getBjWins(NumberUtils.toLong(chatId))) + "-" +
+                String.valueOf(userService.getBjLosses(NumberUtils.toLong(chatId))) + "\n" +
+                "Выиграно-проиграно:  " + String.valueOf(userService.getBjEarned(NumberUtils.toLong(chatId))) + "-" +
+                String.valueOf(userService.getBjLost(NumberUtils.toLong(chatId)));
+        messageSender.sendMessage(text, chatId, null);
+    }
+
+    private void sendRTBStat(String chatId){
+        String text = "Количество побед - поражений:  " + String.valueOf(userService.getRtbWins(NumberUtils.toLong(chatId))) + "-" +
+                String.valueOf(userService.getRtbLosses(NumberUtils.toLong(chatId))) + "\n" +
+                "Выиграно-проиграно:  " + String.valueOf(userService.getRtbEarned(NumberUtils.toLong(chatId))) + "-" +
+                String.valueOf(userService.getRtbLost(NumberUtils.toLong(chatId)));
+        messageSender.sendMessage(text, chatId, null);
+    }
+
+    private void startBlackJack(String chatId) {
+        activeGames.remove(chatId);
+        BlackJack game = new BlackJack();
+        activeGames.put(chatId, game);
+
+        GameResponse response = game.startGame(chatId);
+        handleGameResponse(response);
     }
 
     /**
@@ -57,7 +138,7 @@ public class CallbackHandler {
      * Обработка callback во время активной игры
      */
     private void handleActiveGameCallback(Game activeGame, String chatId,String callbackData) {
-        if (activeGame.IsGameOver()) {
+        if (activeGame.getIsGameOver()) {
             activeGames.remove(chatId);
             return;
         }
@@ -67,7 +148,9 @@ public class CallbackHandler {
         handleGameResponse(response);
 
         if (response.isGameOver()) {
+            checkTaskProgressDelayed(NumberUtils.toLong(chatId));
             activeGames.remove(chatId);
+
         }
     }
     /**
@@ -86,5 +169,18 @@ public class CallbackHandler {
 
             messageSender.sendMessage(text, chatId, keyboard);
         }
+    }
+
+    /**
+     * Проверить прогресс заданий с задержкой (после игры)
+     */
+    private void checkTaskProgressDelayed(Long chatId) {
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                taskService.checkTaskProgressAfterGame(chatId);
+
+            }
+        }, 500);
     }
 }

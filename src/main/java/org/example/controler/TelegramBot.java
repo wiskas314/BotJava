@@ -1,8 +1,13 @@
 package org.example.controler;
 
-import org.example.controler.game.BlackJack;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.example.controler.dto.ButtonData;
+import org.example.controler.dto.CallbackData;
+import org.example.controler.dto.KeyboardMarkup;
+import org.example.controler.dto.MessageData;
 import org.example.controler.game.Game;
-import org.example.controler.game.RideTheBus;
+import org.example.controler.handlers.CallbackHandler;
+import org.example.controler.handlers.MessageHandler;
 import org.example.controler.tasks.TaskService;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -11,26 +16,23 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.example.controler.db.UserService;
 
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * Класс телеграм-бота
  */
 public class TelegramBot extends TelegramLongPollingBot implements MessageSender {
     private final BalanceService balanceService;
-    private final KeyboardFactory keyboardFactory;
     private Map<String, Game> activeGames;
     private final String botUsername;
-    private final String botToken;
     private final MessageHandler messageHandler;
-    public InlineKeyboardMarkup keyboard;
+    private final CallbackHandler callbackHandler;
+    private final KeyboardFactory keyboardFactory;
     private UserService userService;
     private final TaskService taskService;
 
@@ -40,128 +42,27 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     public TelegramBot(String botUsername, String botToken) {
         super(botToken);
         this.botUsername = botUsername;
-        this.botToken = botToken;
-        this.messageHandler = new MessageHandler();
         this.activeGames = new HashMap<>();
-        keyboard = null;
-        userService = new UserService();
         this.keyboardFactory = new KeyboardFactory();
-        this.balanceService = new BalanceService(userService, this, keyboardFactory);
+        userService = new UserService();
+
         this.taskService = new TaskService(userService, this, keyboardFactory);
+        this.balanceService = new BalanceService(userService, this, keyboardFactory);
+
+        this.messageHandler = new MessageHandler(this, keyboardFactory,taskService, userService, balanceService);
+        this.callbackHandler = new CallbackHandler(activeGames,this,keyboardFactory, taskService, userService, balanceService);
     }
 
     @Override
     public void onUpdateReceived(Update update) {
         try {
             if (update.hasCallbackQuery()) {
-                CallbackQuery callbackQuery = update.getCallbackQuery();
-                String chatId = callbackQuery.getMessage().getChatId().toString();
-                Long userId = callbackQuery.getFrom().getId();
-                String callbackData = callbackQuery.getData();
-
-                userService.getOrCreateUser(userId, callbackQuery.getFrom().getUserName());
-
-                if (callbackData.startsWith("task_")) {
-                    taskService.handleTaskSettingsCallback(userId, callbackData);
-                    return;
-                }
-
-                if (callbackData.equals("ride_the_bus")) {
-                    activeGames.remove(chatId);
-
-                    RideTheBus game = new RideTheBus();
-                    game.setGameCallback(this);
-                    activeGames.put(chatId, game);
-                    game.startGame(chatId);
-                    return;
-                }
-
-                if (callbackData.equals("black_jack")) {
-                    activeGames.remove(chatId);
-
-                    BlackJack game = new BlackJack();
-                    game.setGameCallback(this);
-                    activeGames.put(chatId, game);
-                    game.startGame(chatId);
-                    return;
-                }
-                if (callbackData.equals("black_jack_stat")) {
-                    String text = "Количество побед - поражений: " + String.valueOf(userService.getBjWins(userId)) + "-" +
-                            String.valueOf(userService.getBjLosses(userId)) + "\n" +
-                            "Выиграно-проиграно:  " + String.valueOf(userService.getBjEarned(userId)) + "-" +
-                            String.valueOf(userService.getBjLost(userId));
-                    sendMessage(text, chatId, null);
-                    return;
-                }
-
-                if (callbackData.equals("ride_the_bus_stat")) {
-                    String text = "Количество побед - поражений:  " + String.valueOf(userService.getRtbWins(userId)) + "-" +
-                            String.valueOf(userService.getRtbLosses(userId)) + "\n" +
-                            "Выиграно-проиграно:  " + String.valueOf(userService.getRtbEarned(userId)) + "-" +
-                            String.valueOf(userService.getRtbLost(userId));
-                    sendMessage(text, chatId, null);
-                    return;
-                }
-                if (callbackData.equals("exit")) {
-                    Game game = activeGames.get(chatId);
-                    if (game != null) {
-                        game.processUserChoice(callbackData);
-                        checkTaskProgressDelayed(userId);
-                    }
-                    return;
-                }
-
-                if (callbackData.startsWith("bet_")) {
-                    Game game = activeGames.get(chatId);
-                    if (game != null) {
-                        game.processBet(callbackData);
-                    }
-                    return;
-                }
-
-                if (callbackData.equals("add_balance_1000")) {
-                    balanceService.handleBalanceReplenishment(callbackQuery);
-                    return;
-                }
-
-                Game currentGame = activeGames.get(chatId);
-                if (currentGame != null) {
-                    currentGame.processUserChoice(callbackData);
-                    if (currentGame.getIsGameOver()) {
-                        checkTaskProgressDelayed(userId);
-                        activeGames.remove(chatId);
-                    }
-
-                }
+                handleCallbackUpdate(update);
                 return;
             }
-
             if (update.hasMessage() && update.getMessage().hasText()) {
-                Message userMessage = update.getMessage();
-                Long chatId = userMessage.getChatId();
-                String userName = getUsername(update);
-                String text = userMessage.getText();
-
-                if (text.equals("/play")) {
-                    sendMessage("Выберите игру", String.valueOf(chatId),
-                            keyboardFactory.createGameSelectionKeyboard());
-                } else if (text.equals("/balance")) {
-                    balanceService.handleBalanceCommand(chatId);
-                }else if (text.equals("/statistic")) {
-                    sendMessage("Выберите по какой игре показать статистику:", String.valueOf(chatId),
-                            keyboardFactory.createSelfStatFor());
-                } else if (text.equals("/task_settings")) {
-                    taskService.openTaskSettings(String.valueOf(chatId));
-                } else if (isValidTimeFormat(text)) {
-                    taskService.handleTimeInput(chatId, text);
-                }else {
-                    String responseText = messageHandler.handleMessage(text, userName, chatId);
-                    SendMessage message = new SendMessage();
-                    message.setChatId(chatId.toString());
-
-                    message.setText(responseText);
-                    sender(message);
-                }
+                handleTextMessage(update);
+                return;
             }
         } catch (Exception e) {
             System.err.println("Произошла ошибка при обработке обновления: " + e.getMessage());
@@ -169,13 +70,67 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         }
     }
 
+    /**
+     *обработка callback обновления
+     */
+    private void handleCallbackUpdate(Update update){
+        CallbackQuery callbackQuery = update.getCallbackQuery();
+        String chatId = callbackQuery.getMessage().getChatId().toString();
+        String callbackData = callbackQuery.getData();
+        String username = callbackQuery.getFrom().getUserName();
+
+        userService.getOrCreateUser(NumberUtils.toLong(chatId), callbackQuery.getFrom().getUserName());
+
+        CallbackData data = new CallbackData(chatId,callbackData);
+        callbackHandler.handleCallback(data, username);
+    }
+
+    /**
+     *обработка текстовых обновлений
+     */
+    private void handleTextMessage(Update update){
+        Message userMessage = update.getMessage();
+        String chatId = String.valueOf(userMessage.getChatId());
+        String userName = getUsername(update);
+        String text = userMessage.getText();
+
+        MessageData messageData = new MessageData(chatId,text,userName);
+        messageHandler.handleMessage(messageData);
+    }
+
     @Override
-    public void sendMessage(String text, String chatID, InlineKeyboardMarkup markup) {
+    public void sendMessage(String text, String chatID, KeyboardMarkup markup) {
         SendMessage message = new SendMessage();
         message.setChatId(chatID);
         message.setText(text);
-        message.setReplyMarkup(markup);
+        message.setReplyMarkup(convertToTelegramKeyboard(markup));
         sender(message);
+    }
+
+    /**
+     *Конвертирует внутренее представление клавиатуры в формат телеграма
+     */
+    private InlineKeyboardMarkup convertToTelegramKeyboard(KeyboardMarkup markup){
+        if(markup == null || markup.keyboard ==null){
+            return null;
+        }
+        InlineKeyboardMarkup tgKeyboard = new InlineKeyboardMarkup();
+
+        List<List<InlineKeyboardButton>> telegramRows=new ArrayList<>();
+
+        for(List<ButtonData> row:markup.keyboard){
+            List<InlineKeyboardButton> telegramRow=new ArrayList<>();
+
+            for (ButtonData buttonData:row){
+                InlineKeyboardButton tgButton=new InlineKeyboardButton();
+                tgButton.setText(buttonData.getText());
+                tgButton.setCallbackData(buttonData.getCallbackData());
+                telegramRow.add(tgButton);
+            }
+            telegramRows.add(telegramRow);
+        }
+        tgKeyboard.setKeyboard(telegramRows);
+        return tgKeyboard;
     }
 
     /**
@@ -185,8 +140,11 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         try {
             execute(message);
         } catch (TelegramApiException e) {
+            System.err.println("Не удалось отправить сообщение в чат " + message.getChatId());
+            System.err.println("Ошибка Telegram API: " + e.getMessage());
             e.printStackTrace();
         }
+
     }
 
     /**
@@ -198,35 +156,13 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         return userName;
     }
 
-    /**
-     * Проверить прогресс заданий с задержкой (после игры)
-     */
-    private void checkTaskProgressDelayed(Long chatId) {
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                System.out.println("Метод в тг боте, ща перейдет в тасксервис " + chatId);
-                taskService.checkTaskProgressAfterGame(chatId);
 
-            }
-        }, 500);
-    }
 
-    /**
-     * Проверка формата времени
-     */
-    private boolean isValidTimeFormat(String text) {
-        if (text.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$")) {return true;}
-        return false;
-    }
+
 
     @Override
     public String getBotUsername() {
         return botUsername;
     }
 
-    @Override
-    public String getBotToken() {
-        return botToken;
-    }
 }

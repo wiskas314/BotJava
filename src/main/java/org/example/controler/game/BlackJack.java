@@ -5,6 +5,7 @@ import org.example.controler.MessageSender;
 import org.example.controler.cards.Card;
 import org.example.controler.cards.Deck;
 import org.example.controler.db.UserService;
+import org.example.controler.dto.GameResponse;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 /**
@@ -50,7 +51,7 @@ public class BlackJack implements Game {
      * Установка пользователя (требуется для работы со ставками)
      */
     @Override
-    public void startGame(String chatId) {
+    public GameResponse startGame(String chatId) {
         this.chatId = chatId;
 
         if (!betPlaced) {
@@ -201,7 +202,7 @@ public class BlackJack implements Game {
     }
 
     @Override
-    public void processUserChoice(String callbackData) {
+    public GameResponse processUserChoice(String callbackData) {
         if (isGameOver) return;
 
         if ("hit".equals(callbackData)) {
