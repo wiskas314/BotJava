@@ -1,4 +1,4 @@
-package org.example.controler.dto;
+package org.example.controler.game;
 
 /**
  * Ответ игры на действие пользователя

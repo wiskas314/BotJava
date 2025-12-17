@@ -1,5 +1,9 @@
 package org.example.controler;
 
+import org.example.controler.dto.ButtonData;
+import org.example.controler.dto.CallbackData;
+import org.example.controler.dto.KeyboardMarkup;
+import org.example.controler.dto.MessageData;
 import org.example.controler.game.BlackJack;
 import org.example.controler.game.Game;
 import org.example.controler.game.RideTheBus;
@@ -11,14 +15,12 @@ import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.example.controler.db.UserService;
 
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * Класс телеграм-бота
@@ -28,8 +30,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     private final KeyboardFactory keyboardFactory;
     private Map<String, Game> activeGames;
     private final String botUsername;
-    private final String botToken;
-    private final MessageHandler messageHandler;
+    private final MessageSender messageHandler;
     public InlineKeyboardMarkup keyboard;
     private UserService userService;
     private final TaskService taskService;
@@ -39,11 +40,9 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
      */
     public TelegramBot(String botUsername, String botToken) {
         super(botToken);
-        this.botUsername = botUsername;
-        this.botToken = botToken;
-        this.messageHandler = new MessageHandler();
+        this.botUsername =botUsername;
+        this.messageHandler = new MessageSender(this,//todo);
         this.activeGames = new HashMap<>();
-        keyboard = null;
         userService = new UserService();
         this.keyboardFactory = new KeyboardFactory();
         this.balanceService = new BalanceService(userService, this, keyboardFactory);
@@ -170,14 +169,63 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     }
 
     @Override
-    public void sendMessage(String text, String chatID, InlineKeyboardMarkup markup) {
+    public void sendMessage(String text, String chatID, KeyboardMarkup markup) {
         SendMessage message = new SendMessage();
         message.setChatId(chatID);
         message.setText(text);
-        message.setReplyMarkup(markup);
+        message.setReplyMarkup(convertToTelegramKeyboard(markup));
         sender(message);
     }
 
+    /**
+     *конфертирует внутренее представление клавиатуры в формат телеграма
+     */
+    private InlineKeyboardMarkup convertToTelegramKeyboard(KeyboardMarkup markup){
+        if(markup == null || markup.keyboard ==null){
+            return null;
+        }
+        InlineKeyboardMarkup tgKeyboard = new InlineKeyboardMarkup();
+
+        List<List<InlineKeyboardButton>> telegramRows=new ArrayList<>();
+
+        for(List<ButtonData> row:markup.keyboard){
+            List<InlineKeyboardButton> telegramRow=new ArrayList<>();
+
+            for (ButtonData buttonData:row){
+                InlineKeyboardButton tgButton=new InlineKeyboardButton();
+                tgButton.setText(buttonData.getText());
+                tgButton.setCallbackData(buttonData.getCallbackData());
+                telegramRow.add(tgButton);
+            }
+            telegramRows.add(telegramRow);
+        }
+        tgKeyboard.setKeyboard(telegramRows);
+        return tgKeyboard;
+    }
+    /**
+     *обработка callback обновления
+     */
+    private void handleCallbackUpdate(Update update){
+        CallbackQuery callbackQuery = update.getCallbackQuery();
+        String chatId = callbackQuery.getMessage().getChatId().toString();
+        String callbackData = callbackQuery.getData();
+
+        CallbackData data = new CallbackData(chatId,callbackData);
+        callbackHandler.handleCallback(data);
+    }
+
+    /**
+     *обработка текстовых обновлений
+     */
+    private void handleTextMessage(Update update){
+        Message userMessage = update.getMessage();
+        String chatId = String.valueOf(userMessage.getChatId());
+        String userName = getUsername(update);
+        String text = userMessage.getText();
+
+        MessageData messageData = new MessageData(chatId,text,userName);
+        messageHandler.handleMessage(messageData);
+    }
     /**
      * Отправляет сообщение
      */
@@ -185,8 +233,11 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         try {
             execute(message);
         } catch (TelegramApiException e) {
+            System.err.println("Не удалось отправить сообщение в чат " + message.getChatId());
+            System.err.println("Ошибка Telegram API: " + e.getMessage());
             e.printStackTrace();
         }
+
     }
 
     /**
@@ -225,8 +276,4 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         return botUsername;
     }
 
-    @Override
-    public String getBotToken() {
-        return botToken;
-    }
 }

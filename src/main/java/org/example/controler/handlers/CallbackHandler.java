@@ -1,12 +1,10 @@
 package org.example.controler.handlers;
 
-import org.example.controler.Game;
 import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
-import org.example.controler.RideTheBus;
 import org.example.controler.dto.ButtonData;
 import org.example.controler.dto.CallbackData;
-import org.example.controler.dto.GameResponse;
+import org.example.controler.game.GameResponse;
 import org.example.controler.dto.KeyboardMarkup;
 import java.util.List;
 import java.util.Map;

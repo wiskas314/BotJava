@@ -1,4 +1,6 @@
-package org.example.controler.dto;
+package org.example.controler.game;
+
+import org.example.controler.dto.ButtonData;
 
 import java.util.List;
 

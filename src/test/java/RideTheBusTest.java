@@ -1,7 +1,6 @@
-import org.example.controler.RideTheBus;
 import org.example.controler.dto.ButtonData;
-import org.example.controler.dto.GameMessage;
-import org.example.controler.dto.GameResponse;
+import org.example.controler.game.GameMessage;
+import org.example.controler.game.GameResponse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
