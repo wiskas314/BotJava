@@ -1,10 +1,15 @@
 package org.example.controler.handlers;
 
+import org.apache.commons.lang3.math.NumberUtils;
+import org.example.controler.BalanceService;
 import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
+import org.example.controler.db.UserService;
 import org.example.controler.dto.ButtonData;
 import org.example.controler.dto.KeyboardMarkup;
 import org.example.controler.dto.MessageData;
+import org.example.controler.tasks.TaskService;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,10 +19,17 @@ import java.util.List;
 public class MessageHandler {
     private final MessageSender messageSender;
     private final KeyboardFactory keyboardFactory;
+    private final TaskService taskService;
+    private final BalanceService balanceService;
+    private UserService userService;
 
-    public MessageHandler(MessageSender messageSender,KeyboardFactory keyboardFactory){
+    public MessageHandler(MessageSender messageSender,KeyboardFactory keyboardFactory, TaskService taskService,
+                          UserService userService, BalanceService balanceService){
         this.messageSender =  messageSender;
         this.keyboardFactory = keyboardFactory;
+        this.taskService = taskService;
+        this.userService = userService;
+        this.balanceService = balanceService;
     }
     /**
      * обрабатывает текст входящего сообщения и возвращает текстовый ответ.
@@ -34,9 +46,23 @@ public class MessageHandler {
             case "/play":
                 handlePlayCommand(chatId);
                 break;
+            case "/balance":
+                balanceService.handleBalanceCommand(NumberUtils.toLong(chatId));
+                break;
+            case "/statistic":
+                messageSender.sendMessage("Выберите по какой игре показать статистику:", String.valueOf(chatId),
+                        keyboardFactory.createSelfStatFor());
+            case "/task_settings":
+                taskService.openTaskSettings(String.valueOf(chatId));
+                break;
             case "/help":
                 handleHelpCommand(chatId);
                 break;
+            default:
+                if (isValidTimeFormat(text)){
+                    taskService.handleTimeInput(NumberUtils.toLong(chatId), text);
+            }
+
         }
     }
     /**
@@ -71,5 +97,12 @@ public class MessageHandler {
                 /help - Получить список команд
                 /play - Вызывает меню с выбором игр
                 """,chatId,null);
+    }
+    /**
+     * Проверка формата времени
+     */
+    private boolean isValidTimeFormat(String text) {
+        if (text.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$")) {return true;}
+        return false;
     }
 }

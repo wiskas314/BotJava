@@ -1,6 +1,8 @@
 package org.example.controler.tasks;
 
-import org.example.controler.tasks.dto.*;
+import org.example.controler.dto.ActiveTaskInfoDTO;
+import org.example.controler.dto.TaskProgressStateDTO;
+import org.example.controler.dto.TaskSettingsDTO;
 import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
 import org.example.controler.db.UserService;

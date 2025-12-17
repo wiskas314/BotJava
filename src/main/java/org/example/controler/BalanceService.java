@@ -1,4 +1,5 @@
 package org.example.controler;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.example.controler.db.User;
 import org.example.controler.db.UserService;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
@@ -35,10 +36,8 @@ public class BalanceService {
     /**
      * Обработка callback для пополнения баланса
      */
-    public void handleBalanceReplenishment(CallbackQuery callbackQuery) {
-        String chatId = callbackQuery.getMessage().getChatId().toString();
-        Long userId = callbackQuery.getFrom().getId();
-        String username = callbackQuery.getFrom().getUserName();
+    public void handleBalanceReplenishment(String chatId, String username) {
+        Long userId = NumberUtils.toLong(chatId);
 
         boolean success = replenishBalance(userId, username, 1000);
 

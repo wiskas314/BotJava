@@ -1,6 +1,6 @@
 package org.example.controler.tasks;
 
-import org.example.controler.tasks.dto.ActiveTaskInfoDTO;
+import org.example.controler.dto.ActiveTaskInfoDTO;
 import java.time.LocalDate;
 import java.util.Random;
 
