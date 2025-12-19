@@ -2,7 +2,8 @@ package org.example.controler;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.example.controler.db.User;
 import org.example.controler.db.UserService;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.example.controler.game.GameMessage;
+import org.example.controler.game.GameResponse;
 
 /**
  * Сервис для работы с балансом пользователя
@@ -10,12 +11,12 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 public class BalanceService {
     private UserService userService;
     private MessageSender messageSender;
-    private KeyboardFactory keyboardFactory;
+    private KeyboardBuilder keyboardBuilder;
 
-    public BalanceService(UserService userService, MessageSender messageSender, KeyboardFactory keyboardFactory) {
+    public BalanceService(UserService userService, MessageSender messageSender, KeyboardBuilder keyboardBuilder) {
         this.userService = userService;
         this.messageSender = messageSender;
-        this.keyboardFactory = keyboardFactory;
+        this.keyboardBuilder = keyboardBuilder;
     }
 
     /**
@@ -36,23 +37,25 @@ public class BalanceService {
     /**
      * Обработка callback для пополнения баланса
      */
-    public void handleBalanceReplenishment(String chatId, String username) {
+    public GameResponse handleBalanceReplenishment(String chatId, String username) {
         Long userId = NumberUtils.toLong(chatId);
 
         boolean success = replenishBalance(userId, username, 1000);
 
         if (success) {
-            int newBalance = getUserBalance(userId);
-            messageSender.sendMessage(
-                    "Баланс пополнен на 1000\nНовый баланс: " + newBalance,
-                    chatId,
-                    keyboardFactory.createGameSelectionKeyboard()
+            int newBalance = userService.getUserBalance(userId);
+            String messageText = "✅ Баланс пополнен на 1000 🪙\n💰 Новый баланс: " + newBalance + " 🪙";
+
+            return new GameResponse(
+                    new GameMessage(chatId, messageText, keyboardBuilder.createGameSelectionButtons()),
+                    true
             );
         } else {
-            messageSender.sendMessage(
-                    "Ошибка при пополнении баланса",
-                    chatId,
-                    keyboardFactory.createGameSelectionKeyboard()
+            String messageText = "❌ Ошибка при пополнении баланса";
+
+            return new GameResponse(
+                    new GameMessage(chatId, messageText, keyboardBuilder.createGameSelectionButtons()),
+                    true
             );
         }
     }

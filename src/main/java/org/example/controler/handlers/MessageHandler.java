@@ -4,7 +4,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.example.controler.BalanceService;
 import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
-import org.example.controler.db.UserService;
 import org.example.controler.dto.ButtonData;
 import org.example.controler.dto.KeyboardMarkup;
 import org.example.controler.dto.MessageData;
@@ -21,14 +20,12 @@ public class MessageHandler {
     private final KeyboardFactory keyboardFactory;
     private final TaskService taskService;
     private final BalanceService balanceService;
-    private UserService userService;
 
     public MessageHandler(MessageSender messageSender,KeyboardFactory keyboardFactory, TaskService taskService,
-                          UserService userService, BalanceService balanceService){
+                          BalanceService balanceService){
         this.messageSender =  messageSender;
         this.keyboardFactory = keyboardFactory;
         this.taskService = taskService;
-        this.userService = userService;
         this.balanceService = balanceService;
     }
     /**
@@ -50,8 +47,7 @@ public class MessageHandler {
                 balanceService.handleBalanceCommand(NumberUtils.toLong(chatId));
                 break;
             case "/statistic":
-                messageSender.sendMessage("Выберите по какой игре показать статистику:", String.valueOf(chatId),
-                        keyboardFactory.createSelfStatFor());
+                handleStatisticCommand(chatId);
             case "/task_settings":
                 taskService.openTaskSettings(String.valueOf(chatId));
                 break;
@@ -96,6 +92,8 @@ public class MessageHandler {
                 /start - Начать общение с ботом
                 /help - Получить список команд
                 /play - Вызывает меню с выбором игр
+                /balance - Показывает баланс пользователя
+                /statistic - Показывает статистику пользователя
                 """,chatId,null);
     }
     /**
@@ -104,5 +102,16 @@ public class MessageHandler {
     private boolean isValidTimeFormat(String text) {
         if (text.matches("^([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$")) {return true;}
         return false;
+    }
+
+    private void handleStatisticCommand(String chatId){
+        List<List<ButtonData>> buttonRows = new ArrayList<>();
+        List<ButtonData> row = new ArrayList<>();
+        row.add(new ButtonData("Статистика Black Jack", "black_jack_stat"));
+        row.add(new ButtonData("Статистика Ride The Bus", "ride_the_bus_stat"));
+        buttonRows.add(row);
+
+        KeyboardMarkup keyboard=keyboardFactory.createKeyboard(buttonRows);
+        messageSender.sendMessage("Выберите по какой игре показать статистику:",chatId,keyboard);
     }
 }
