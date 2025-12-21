@@ -13,9 +13,7 @@ import org.example.controler.dto.CallbackData;
 import org.example.controler.dto.GameResponse;
 import org.example.controler.dto.KeyboardMarkup;
 import org.example.controler.tasks.TaskService;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 
-import javax.swing.text.Utilities;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
