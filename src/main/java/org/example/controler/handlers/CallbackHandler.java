@@ -1,5 +1,6 @@
 package org.example.controler.handlers;
 
+import ch.qos.logback.core.net.SyslogOutputStream;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.example.controler.BalanceService;
 import org.example.controler.db.UserService;
@@ -28,6 +29,7 @@ public class CallbackHandler {
     private final MessageSender messageSender;
     private final KeyboardFactory keyboardFactory;
     private final TaskService taskService;
+    private final TaskCallBackHandler taskCallBackHandler;
     private final BalanceService balanceService;
     private UserService userService;
 
@@ -37,13 +39,14 @@ public class CallbackHandler {
         this.messageSender = messageSender;
         this.keyboardFactory = keyboardFactory;
         this.taskService = taskService;
+        this.taskCallBackHandler = new TaskCallBackHandler(taskService, messageSender, keyboardFactory);
         this.userService = userService;
         this.balanceService = balanceService;
     }
     /**
      * Обработка callback данных
      */
-    public void handleCallback(CallbackData callbackData, String username) {
+    public void handleCallback(CallbackData callbackData) {
         String chatId = callbackData.getChatId();
         String callback = callbackData.getCallbackData();
 
@@ -56,7 +59,7 @@ public class CallbackHandler {
             return;
         }
         if (callback.startsWith("task_")) {
-            taskService.handleTaskSettingsCallback(NumberUtils.toLong(chatId), callback);
+            taskCallBackHandler.handleTaskSettingsCallback(NumberUtils.toLong(chatId), callback);
             return;
         }
 
@@ -81,7 +84,7 @@ public class CallbackHandler {
         }
 
         if (callbackData.equals("add_balance_1000")) {
-            balanceService.handleBalanceReplenishment(chatId, username);
+            balanceService.handleBalanceReplenishment(chatId);
             return;
         }
         endGame(chatId, callback);

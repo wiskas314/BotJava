@@ -1,7 +1,7 @@
 package org.example.controler;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.example.controler.db.User;
 import org.example.controler.db.UserService;
+import org.example.controler.dto.KeyboardMarkup;
 import org.example.controler.game.GameMessage;
 import org.example.controler.game.GameResponse;
 
@@ -12,18 +12,20 @@ public class BalanceService {
     private UserService userService;
     private MessageSender messageSender;
     private KeyboardBuilder keyboardBuilder;
+    private KeyboardFactory keyboardFactory;
 
-    public BalanceService(UserService userService, MessageSender messageSender, KeyboardBuilder keyboardBuilder) {
+    public BalanceService(UserService userService, MessageSender messageSender, KeyboardBuilder keyboardBuilder,
+                          KeyboardFactory keyboardFactory) {
         this.userService = userService;
         this.messageSender = messageSender;
         this.keyboardBuilder = keyboardBuilder;
+        this.keyboardFactory= keyboardFactory;
     }
 
     /**
      * Пополнение баланса пользователя
      */
-    public boolean replenishBalance(Long userId, String username, int amount) {
-        User user = userService.getOrCreateUser(userId, username);
+    public boolean replenishBalance(Long userId, int amount) {
         return userService.payWinnings(userId, amount);
     }
 
@@ -37,10 +39,10 @@ public class BalanceService {
     /**
      * Обработка callback для пополнения баланса
      */
-    public GameResponse handleBalanceReplenishment(String chatId, String username) {
+    public GameResponse handleBalanceReplenishment(String chatId) {
         Long userId = NumberUtils.toLong(chatId);
 
-        boolean success = replenishBalance(userId, username, 1000);
+        boolean success = replenishBalance(userId, 1000);
 
         if (success) {
             int newBalance = userService.getUserBalance(userId);
@@ -66,6 +68,6 @@ public class BalanceService {
     public void handleBalanceCommand(Long chatId) {
         int balance = getUserBalance(chatId);
         messageSender.sendMessage("Ваш баланс: " + balance, String.valueOf(chatId),
-                keyboardFactory.createReplenishKeyboard());
+                 keyboardFactory.createKeyboard(keyboardBuilder.createReplenishKeyboard()));
     }
 }

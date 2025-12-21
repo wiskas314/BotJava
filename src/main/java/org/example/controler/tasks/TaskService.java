@@ -1,12 +1,10 @@
 package org.example.controler.tasks;
 
-import org.example.controler.dto.ActiveTaskInfoDTO;
-import org.example.controler.dto.TaskProgressStateDTO;
-import org.example.controler.dto.TaskSettingsDTO;
+import org.example.controler.KeyboardBuilder;
+import org.example.controler.dto.*;
 import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
 import org.example.controler.db.UserService;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -17,12 +15,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Сервис для управления ежедневными заданиями
+ * Сервис для управления ежедневными заданиями (бизнес-логика)
  */
 public class TaskService {
     private final UserService userService;
     private final MessageSender messageSender;
     private final KeyboardFactory keyboardFactory;
+    private KeyboardBuilder keyboardBuilder;
 
     private final Map<Long, TaskProgressStateDTO> taskStates = new ConcurrentHashMap<>();
     private final Map<Long, ActiveTaskInfoDTO> activeTaskDTOs = new ConcurrentHashMap<>();
@@ -35,28 +34,166 @@ public class TaskService {
         this.userService = userService;
         this.messageSender = messageSender;
         this.keyboardFactory = keyboardFactory;
-
         startDailyTaskScheduler();
     }
 
+
     /**
-     * Получить состояние прогресса пользователя через UserService
+     * Проверить прогресс заданий после игры
+     */
+    public void checkTaskProgressAfterGame(Long chatId) {
+        TaskProgressStateDTO oldState = getTaskProgressStateDTO(chatId);
+        TaskProgressStateDTO newState = fetchCurrentProgressStateDTO(chatId);
+
+        ActiveTaskInfoDTO activeTaskDTO = activeTaskDTOs.get(chatId);
+        if (activeTaskDTO != null && !activeTaskDTO.completed) {
+            int progress = calculateProgressForTask(activeTaskDTO.taskType, oldState, newState);
+
+            if (progress > 0) {
+                activeTaskDTO.currentValue += progress;
+                activeTaskDTO.progressPercentage = calculateProgressPercentage(
+                        activeTaskDTO.currentValue,
+                        activeTaskDTO.targetValue
+                );
+
+                if (activeTaskDTO.currentValue >= activeTaskDTO.targetValue) {
+                    activeTaskDTO.completed = true;
+                    sendTaskCompletedNotification(chatId, activeTaskDTO);
+                }
+            }
+        }
+
+        taskStates.put(chatId, newState);
+    }
+
+    /**
+     * Забрать награду за задание
+     */
+    public void claimTaskReward(Long chatId) {
+        ActiveTaskInfoDTO taskDTO = activeTaskDTOs.get(chatId);
+
+        if (taskDTO == null || !taskDTO.completed) {
+            messageSender.sendMessage(
+                    "❌ У вас нет выполненных заданий для получения награды",
+                    String.valueOf(chatId),
+                    null
+            );
+            return;
+        }
+
+        boolean success = userService.payWinnings(chatId, taskDTO.reward);
+
+        if (success) {
+            int newBalance = userService.getUserBalance(chatId);
+            userService.changeEarned(chatId, taskDTO.reward);
+
+            String message = "🎉 *Награда получена!*\n\n" +
+                    "💰 +" + taskDTO.reward + " 🪙\n" +
+                    "💎 Новый баланс: " + newBalance + " 🪙\n\n" +
+                    "Задание будет обновлено завтра!";
+
+            activeTaskDTOs.remove(chatId);
+            messageSender.sendMessage(message, String.valueOf(chatId),
+                    keyboardFactory.createKeyboard(keyboardBuilder.createGameSelectionButtons()));
+        } else {
+            messageSender.sendMessage(
+                    "❌ Ошибка при получении награды",
+                    String.valueOf(chatId),
+                    null
+            );
+        }
+    }
+
+
+    /**
+     * Получить или создать настройки DTO
+     */
+    public TaskSettingsDTO getOrCreateTaskSettingsDTO(Long chatId) {
+        return taskSettingsMap.computeIfAbsent(chatId, id -> new TaskSettingsDTO(
+                chatId,
+                true,
+                "14:00:00",
+                "EASY",
+                "ВКЛЮЧЕНЫ",
+                "ЛЕГКИЙ"
+        ));
+    }
+
+    /**
+     * Обновить настройки
+     */
+    public void updateTaskSettingsDTO(TaskSettingsDTO settings) {
+        taskSettingsMap.put(settings.chatId, settings);
+    }
+
+    /**
+     * Обновить статус включения заданий
+     */
+    public void toggleTaskStatus(Long chatId) {
+        TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
+        settings.enabled = !settings.enabled;
+        settings.statusInRussian = settings.enabled ? "ВКЛЮЧЕНЫ" : "ВЫКЛЮЧЕНЫ";
+        updateTaskSettingsDTO(settings);
+    }
+
+    /**
+     * Обновить время уведомлений
+     */
+    public void updateNotificationTime(Long chatId, String time) {
+        TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
+        settings.notificationTime = time;
+        updateTaskSettingsDTO(settings);
+    }
+
+    /**
+     * Переключить сложность заданий
+     */
+    public void toggleDifficulty(Long chatId) {
+        TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
+        if (settings.difficulty.equals("EASY")) {
+            settings.difficulty = "HARD";
+            settings.difficultyInRussian = "СЛОЖНЫЙ";
+        } else {
+            settings.difficulty = "EASY";
+            settings.difficultyInRussian = "ЛЕГКИЙ";
+        }
+        updateTaskSettingsDTO(settings);
+    }
+
+
+
+    /**
+     * Обработка ввода времени
+     */
+    public boolean handleTimeInput(Long chatId, String timeText) {
+        try {
+            String[] parts = timeText.split(":");
+            if (parts.length == 3) {
+                int hour = Integer.parseInt(parts[0]);
+                int minute = Integer.parseInt(parts[1]);
+                int second = Integer.parseInt(parts[2]);
+
+                if (isValidTime(hour, minute, second)) {
+                    TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
+                    settings.notificationTime = String.format("%02d:%02d:%02d", hour, minute, second);
+                    updateTaskSettingsDTO(settings);
+                    return true;
+                }
+            }
+            sendErrorMessage(chatId, "❌ Неверное время. Используйте ЧЧ:ММ:СС (например 14:00:00)");
+            return false;
+        } catch (NumberFormatException e) {
+            sendErrorMessage(chatId, "❌ Неверный формат. Используйте ЧЧ:ММ:СС (например 14:00:00)");
+            return false;
+        }
+    }
+
+
+    /**
+     * Получить состояние прогресса пользователя
      */
     private TaskProgressStateDTO getTaskProgressStateDTO(Long chatId) {
-        return taskStates.computeIfAbsent(chatId, id -> {
-            return new TaskProgressStateDTO(
-                    userService.getBjWins(id),
-                    userService.getBjLosses(id),
-                    userService.getBjEarned(id),
-                    userService.getBjLost(id),
-                    userService.getRtbWins(id),
-                    userService.getRtbLosses(id),
-                    userService.getRtbEarned(id),
-                    userService.getRtbLost(id),
-                    userService.getUserBalance(id),
-                    userService.getUserEarned(id)
-            );
-        });
+        return taskStates.computeIfAbsent(chatId, id -> fetchCurrentProgressStateDTO(id));
     }
 
     /**
@@ -78,31 +215,6 @@ public class TaskService {
     }
 
     /**
-     * Проверить прогресс заданий после игры
-     */
-    public void checkTaskProgressAfterGame(Long chatId) {
-        TaskProgressStateDTO oldState = getTaskProgressStateDTO(chatId);
-        TaskProgressStateDTO newState = fetchCurrentProgressStateDTO(chatId);
-
-        ActiveTaskInfoDTO activeTaskDTO = activeTaskDTOs.get(chatId);
-        if (activeTaskDTO != null && !activeTaskDTO.completed) {
-            int progress = calculateProgressForTask(activeTaskDTO.taskType, oldState, newState);
-
-            if (progress > 0) {
-                activeTaskDTO.currentValue += progress;
-                activeTaskDTO.progressPercentage = calculateProgressPercentage(activeTaskDTO.currentValue, activeTaskDTO.targetValue);
-
-                if (activeTaskDTO.currentValue >= activeTaskDTO.targetValue) {
-                    activeTaskDTO.completed = true;
-                    sendTaskCompletedNotification(chatId, activeTaskDTO);
-                }
-            }
-        }
-
-        taskStates.put(chatId, newState);
-    }
-
-    /**
      * Рассчитать прогресс для задачи на основе изменений
      */
     private int calculateProgressForTask(String taskType, TaskProgressStateDTO oldState, TaskProgressStateDTO newState) {
@@ -110,20 +222,16 @@ public class TaskService {
             case "WIN_BLACKJACK":
                 return newState.bjWins - oldState.bjWins;
             case "PLAY_BLACKJACK":
-                return (newState.bjWins - oldState.bjWins) +
-                        (newState.bjLosses - oldState.bjLosses);
+                return (newState.bjWins - oldState.bjWins) + (newState.bjLosses - oldState.bjLosses);
             case "EARN_BLACKJACK":
-                int progress = (newState.bjEarned - oldState.bjEarned) -
-                        (newState.bjLost - oldState.bjLost);
+                int progress = (newState.bjEarned - oldState.bjEarned) - (newState.bjLost - oldState.bjLost);
                 return Math.max(0, progress);
             case "WIN_RIDE_THE_BUS":
                 return newState.rtbWins - oldState.rtbWins;
             case "PLAY_RIDE_THE_BUS":
-                return (newState.rtbWins - oldState.rtbWins) +
-                        (newState.rtbLosses - oldState.rtbLosses);
+                return (newState.rtbWins - oldState.rtbWins) + (newState.rtbLosses - oldState.rtbLosses);
             case "EARN_RIDE_THE_BUS":
-                int rtbProgress = (newState.rtbEarned - oldState.rtbEarned) -
-                        (newState.rtbLost - oldState.rtbLost);
+                int rtbProgress = (newState.rtbEarned - oldState.rtbEarned) - (newState.rtbLost - oldState.rtbLost);
                 return Math.max(0, rtbProgress);
             case "EARN_ANY":
                 return newState.earned - oldState.earned;
@@ -146,49 +254,16 @@ public class TaskService {
                 "💰 Награда: " + task.reward + " 🪙\n\n" +
                 "Нажмите кнопку ниже, чтобы забрать награду!";
 
-        InlineKeyboardMarkup keyboard = createTaskClaimKeyboard();
-        messageSender.sendMessage(message, String.valueOf(chatId), keyboard);
+        messageSender.sendMessage(message, String.valueOf(chatId),createTaskClaimMarkup());
     }
-
     /**
-     * Открыть меню настроек заданий
+     * создание разметки для клавитуры сбор наград
      */
-    public void openTaskSettings(String chatIdStr) {
-        Long chatId = Long.valueOf(chatIdStr);
-        TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
-
-        String message = "⚙️ Настройка ежедневных заданий:\n\n" +
-                "• Статус: [" + settings.statusInRussian + "]\n" +
-                "• Время получения: [" + settings.notificationTime + "]\n" +
-                "• Уровень сложности: [" + settings.difficultyInRussian + "]";
-
-        InlineKeyboardMarkup keyboard = createTaskSettingsKeyboard(settings);
-        messageSender.sendMessage(message, chatIdStr, keyboard);
-    }
-
-    /**
-     * Получить или создать настройки DTO
-     */
-    private TaskSettingsDTO getOrCreateTaskSettingsDTO(Long chatId) {
-        return taskSettingsMap.computeIfAbsent(chatId, id -> {
-            String formattedTime = "14:00:00";
-            String difficulty = "EASY";
-            return new TaskSettingsDTO(
-                    chatId,
-                    true,
-                    formattedTime,
-                    difficulty,
-                    "ВКЛЮЧЕНЫ",
-                    "ЛЕГКИЙ"
-            );
-        });
-    }
-
-    /**
-     * Обновить настройки
-     */
-    private void updateTaskSettingsDTO(TaskSettingsDTO settings) {
-        taskSettingsMap.put(settings.chatId, settings);
+    private KeyboardMarkup createTaskClaimMarkup(){
+        List<List<ButtonData>> buttons = new ArrayList<>();
+        List<ButtonData> row = new ArrayList<>();
+        row.add(new ButtonData("\uD83D\uDCB0 Забрать награду!", "task_claim"));
+        return keyboardFactory.createKeyboard(buttons);
     }
 
     /**
@@ -228,47 +303,7 @@ public class TaskService {
                 "🎯 *Требуется:* " + taskDTO.targetValue + "\n" +
                 "💰 *Награда:* " + taskDTO.reward + " 🪙";
 
-        InlineKeyboardMarkup keyboard = keyboardFactory.createGameSelectionKeyboard();
-        messageSender.sendMessage(message, String.valueOf(chatId), keyboard);
-    }
-
-    /**
-     * Забрать награду за задание
-     */
-    public void claimTaskReward(Long chatId) {
-        ActiveTaskInfoDTO taskDTO = activeTaskDTOs.get(chatId);
-
-        if (taskDTO == null || !taskDTO.completed) {
-            messageSender.sendMessage(
-                    "❌ У вас нет выполненных заданий для получения награды",
-                    String.valueOf(chatId),
-                    null
-            );
-            return;
-        }
-
-        boolean success = userService.payWinnings(chatId, taskDTO.reward);
-
-        if (success) {
-            int newBalance = userService.getUserBalance(chatId);
-            userService.changeEarned(chatId, taskDTO.reward);
-
-            String message = "🎉 *Награда получена!*\n\n" +
-                    "💰 +" + taskDTO.reward + " 🪙\n" +
-                    "💎 Новый баланс: " + newBalance + " 🪙\n\n" +
-                    "Задание будет обновлено завтра!";
-
-            activeTaskDTOs.remove(chatId);
-
-            messageSender.sendMessage(message, String.valueOf(chatId),
-                    keyboardFactory.createGameSelectionKeyboard());
-        } else {
-            messageSender.sendMessage(
-                    "❌ Ошибка при получении награды",
-                    String.valueOf(chatId),
-                    null
-            );
-        }
+        messageSender.sendMessage(message, String.valueOf(chatId), keyboardFactory.createKeyboard(keyboardBuilder.createGameSelectionButtons()));
     }
 
     /**
@@ -282,7 +317,6 @@ public class TaskService {
                 TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
 
                 if (settings.enabled) {
-                    // Парсим время из строки
                     String[] timeParts = settings.notificationTime.split(":");
                     if (timeParts.length == 3) {
                         int hour = Integer.parseInt(timeParts[0]);
@@ -307,161 +341,14 @@ public class TaskService {
         return new HashSet<>(taskSettingsMap.keySet());
     }
 
-    /**
-     * Создать клавиатуру для получения награды
-     */
-    private InlineKeyboardMarkup createTaskClaimKeyboard() {
-        return keyboardFactory.createTaskClaimKeyboard();
+    // === УТИЛИТЫ ===
+
+    private boolean isValidTime(int hour, int minute, int second) {
+        return hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60;
     }
 
-    /**
-     * Создать клавиатуру для настроек
-     */
-    private InlineKeyboardMarkup createTaskSettingsKeyboard(TaskSettingsDTO settings) {
-        return keyboardFactory.createTaskSettingsKeyboard(
-                settings.enabled,
-                settings.notificationTime,
-                settings.difficulty
-        );
+    private void sendErrorMessage(Long chatId, String message) {
+        messageSender.sendMessage(message, String.valueOf(chatId), null);
     }
 
-    /**
-     * Обработка callback от настроек
-     */
-    public void handleTaskSettingsCallback(Long chatId, String callbackData) {
-        TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
-
-        switch (callbackData) {
-            case "task_toggle":
-                settings.enabled = !settings.enabled;
-                settings.statusInRussian = settings.enabled ? "ВКЛЮЧЕНЫ" : "ВЫКЛЮЧЕНЫ";
-                updateTaskSettingsDTO(settings);
-                openTaskSettings(String.valueOf(chatId));
-                break;
-
-            case "task_change_time":
-                showTimeSelectionKeyboard(chatId);
-                break;
-
-            case "task_time_9":
-                settings.notificationTime = "09:00:00";
-                updateTaskSettingsDTO(settings);
-                openTaskSettings(String.valueOf(chatId));
-                break;
-
-            case "task_time_14":
-                settings.notificationTime = "14:00:00";
-                updateTaskSettingsDTO(settings);
-                openTaskSettings(String.valueOf(chatId));
-                break;
-
-            case "task_time_20":
-                settings.notificationTime = "20:00:00";
-                updateTaskSettingsDTO(settings);
-                openTaskSettings(String.valueOf(chatId));
-                break;
-
-            case "task_change_difficulty":
-                if (settings.difficulty.equals("EASY")) {
-                    settings.difficulty = "HARD";
-                    settings.difficultyInRussian = "СЛОЖНЫЙ";
-                } else {
-                    settings.difficulty = "EASY";
-                    settings.difficultyInRussian = "ЛЕГКИЙ";
-                }
-                updateTaskSettingsDTO(settings);
-                openTaskSettings(String.valueOf(chatId));
-                break;
-
-            case "task_save":
-                messageSender.sendMessage(
-                        "✅ Настройки сохранены!",
-                        String.valueOf(chatId),
-                        keyboardFactory.createGameSelectionKeyboard()
-                );
-                break;
-
-            case "task_claim":
-                claimTaskReward(chatId);
-                break;
-
-            case "task_settings":
-                openTaskSettings(String.valueOf(chatId));
-                break;
-        }
-    }
-
-    /**
-     * Показать выбор времени
-     */
-    private void showTimeSelectionKeyboard(Long chatId) {
-        String message = "⏰ Выберите время получения заданий:";
-        InlineKeyboardMarkup keyboard = createTimeSelectionKeyboard();
-        messageSender.sendMessage(message, String.valueOf(chatId), keyboard);
-    }
-
-    /**
-     * Создать клавиатуру выбора времени
-     */
-    private InlineKeyboardMarkup createTimeSelectionKeyboard() {
-        return keyboardFactory.createTimeSelectionKeyboard();
-    }
-
-    /**
-     * Обработка ввода времени
-     */
-    public void handleTimeInput(Long chatId, String timeText) {
-        try {
-            String[] parts = timeText.split(":");
-            if (parts.length == 3) {
-                int hour = Integer.parseInt(parts[0]);
-                int minute = Integer.parseInt(parts[1]);
-                int second = Integer.parseInt(parts[2]);
-
-                if (hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
-                    TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
-                    settings.notificationTime = String.format("%02d:%02d:%02d", hour, minute, second);
-                    updateTaskSettingsDTO(settings);
-
-                    openTaskSettings(String.valueOf(chatId));
-                } else {
-                    messageSender.sendMessage(
-                            "❌ Неверное время. Используйте ЧЧ:ММ:СС (например 14:00:00)",
-                            String.valueOf(chatId),
-                            null
-                    );
-                }
-            } else {
-                messageSender.sendMessage(
-                        "❌ Неверный формат. Используйте ЧЧ:ММ:СС (например 14:00:00)",
-                        String.valueOf(chatId),
-                        null
-                );
-            }
-        } catch (NumberFormatException e) {
-            messageSender.sendMessage(
-                    "❌ Неверный формат. Используйте ЧЧ:ММ:СС (например 14:00:00)",
-                    String.valueOf(chatId),
-                    null
-            );
-        }
-    }
-
-    /**
-     * Метод для тестов - получить активное задание пользователя
-     */
-    public ActiveTaskInfoDTO getActiveTaskDTOForTest(Long chatId) {
-        return activeTaskDTOs.get(chatId);
-    }
-
-    public TaskSettingsDTO getTaskSettingsDTOForTest(Long testChatId) {
-        return taskSettingsMap.get(testChatId);
-    }
-
-    /**
-     * Получить DTO активного задания
-     */
-    public ActiveTaskInfoDTO getActiveTaskDTO(Long chatId) {
-        return activeTaskDTOs.get(chatId);
-    }
 }

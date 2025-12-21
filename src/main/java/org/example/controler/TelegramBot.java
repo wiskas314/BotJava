@@ -8,6 +8,7 @@ import org.example.controler.dto.MessageData;
 import org.example.controler.game.Game;
 import org.example.controler.handlers.CallbackHandler;
 import org.example.controler.handlers.MessageHandler;
+import org.example.controler.handlers.TaskCallBackHandler;
 import org.example.controler.tasks.TaskService;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -35,6 +36,8 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     private final KeyboardFactory keyboardFactory;
     private UserService userService;
     private final TaskService taskService;
+    private KeyboardBuilder keyboardBuilder;
+    private TaskCallBackHandler taskCallBackHandler;
 
     /**
      * конструктор
@@ -47,9 +50,9 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         userService = new UserService();
 
         this.taskService = new TaskService(userService, this, keyboardFactory);
-        this.balanceService = new BalanceService(userService, this, keyboardFactory);
+        this.balanceService = new BalanceService(userService, this, keyboardBuilder,keyboardFactory);
 
-        this.messageHandler = new MessageHandler(this, keyboardFactory,taskService, balanceService);
+        this.messageHandler = new MessageHandler(this, keyboardFactory,taskService, balanceService,taskCallBackHandler);
         this.callbackHandler = new CallbackHandler(activeGames,this,keyboardFactory, taskService, userService, balanceService);
     }
 
@@ -82,7 +85,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         userService.getOrCreateUser(NumberUtils.toLong(chatId), callbackQuery.getFrom().getUserName());
 
         CallbackData data = new CallbackData(chatId,callbackData);
-        callbackHandler.handleCallback(data, username);
+        callbackHandler.handleCallback(data);
     }
 
     /**

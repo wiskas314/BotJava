@@ -7,7 +7,9 @@ import org.example.controler.MessageSender;
 import org.example.controler.dto.ButtonData;
 import org.example.controler.dto.KeyboardMarkup;
 import org.example.controler.dto.MessageData;
+import org.example.controler.dto.TaskSettingsDTO;
 import org.example.controler.tasks.TaskService;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,13 +22,15 @@ public class MessageHandler {
     private final KeyboardFactory keyboardFactory;
     private final TaskService taskService;
     private final BalanceService balanceService;
+    private final TaskCallBackHandler taskCallBackHandler;
 
-    public MessageHandler(MessageSender messageSender,KeyboardFactory keyboardFactory, TaskService taskService,
-                          BalanceService balanceService){
+    public MessageHandler(MessageSender messageSender, KeyboardFactory keyboardFactory, TaskService taskService,
+                          BalanceService balanceService, TaskCallBackHandler taskCallBackHandler){
         this.messageSender =  messageSender;
         this.keyboardFactory = keyboardFactory;
         this.taskService = taskService;
         this.balanceService = balanceService;
+        this.taskCallBackHandler = new TaskCallBackHandler(taskService,messageSender,keyboardFactory);
     }
     /**
      * обрабатывает текст входящего сообщения и возвращает текстовый ответ.
@@ -48,8 +52,9 @@ public class MessageHandler {
                 break;
             case "/statistic":
                 handleStatisticCommand(chatId);
+                break;
             case "/task_settings":
-                taskService.openTaskSettings(String.valueOf(chatId));
+                taskCallBackHandler.openTaskSettings(String.valueOf(chatId));
                 break;
             case "/help":
                 handleHelpCommand(chatId);
@@ -71,6 +76,7 @@ public class MessageHandler {
         );
         messageSender.sendMessage(welcomeMessage, chatId, null);
     }
+
     /**
      * Обработка команды /play
      */
@@ -78,6 +84,7 @@ public class MessageHandler {
         List<List<ButtonData>> buttons = new ArrayList<>();
         List<ButtonData> row = new ArrayList<>();
         row.add(new ButtonData("🎮 Ride the Bus", "ride_the_bus"));
+        row.add(new ButtonData("🎮 Black Jack", "black_jack"));
         buttons.add(row);
 
         KeyboardMarkup keyboard = keyboardFactory.createKeyboard(buttons);
@@ -94,6 +101,7 @@ public class MessageHandler {
                 /play - Вызывает меню с выбором игр
                 /balance - Показывает баланс пользователя
                 /statistic - Показывает статистику пользователя
+                
                 """,chatId,null);
     }
     /**
