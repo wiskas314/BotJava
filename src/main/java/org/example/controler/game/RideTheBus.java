@@ -20,7 +20,6 @@ public class RideTheBus implements Game {
     private String specialCard;
     private final KeyboardBuilder keyboardBuilder;
     private String chatId;
-    private MessageSender gameCallback;
     private boolean isGameOver;
     private Card[] table;
     private int roundNumber;
@@ -42,12 +41,6 @@ public class RideTheBus implements Game {
         roundNumber = 1;
     }
 
-    /**
-     * Установка пользователя
-     */
-    public void setGameCallback(MessageSender callback) {
-        this.gameCallback = callback;
-    }
 
     /**
      * Добавление карты на стол
@@ -187,14 +180,14 @@ public class RideTheBus implements Game {
         }
 
 
-        GameMessage message = new GameMessage(roundText + "\n" + getTableAsString() + " " + specialCard, chatId, keyboard);
+        GameMessage message = new GameMessage(chatId,roundText + "\n" + getTableAsString() + " " + specialCard, keyboard);
         return new GameResponse(message, false);
 
     }
 
     @Override
     public GameResponse processUserChoice(String callbackData) {
-        if (isGameOver || gameCallback == null) {
+        if (isGameOver) {
             return new GameResponse(null, true);
         }
         if (callbackData.equals("exit")) {
@@ -300,12 +293,14 @@ public class RideTheBus implements Game {
                 List<ButtonData> round2Butons=new ArrayList<>();
                 round2Butons.add(new ButtonData("Выше","higher"));
                 round2Butons.add(new ButtonData("Ниже","lower"));
+                round2Butons.add(new ButtonData("🚪 Забрать выигрыш", "exit"));
                 buttonRows.add(round2Butons);
                 break;
             case 3:
                 List<ButtonData> round3Butons=new ArrayList<>();
                 round3Butons.add(new ButtonData("Внутри диапазона","inside"));
                 round3Butons.add(new ButtonData("Вне диапазона","outside"));
+                round3Butons.add(new ButtonData("🚪 Забрать выигрыш", "exit"));
                 buttonRows.add(round3Butons);
                 break;
             case 4:
@@ -316,6 +311,7 @@ public class RideTheBus implements Game {
                 List<ButtonData> secondround4Butons =new ArrayList<>();
                 secondround4Butons.add(new ButtonData("♣ Трефы","clubs"));
                 secondround4Butons.add(new ButtonData("♠ Пики","peaks"));
+                secondround4Butons.add(new ButtonData("🚪 Забрать выигрыш", "exit"));
                 buttonRows.add(secondround4Butons);
                 break;
         }

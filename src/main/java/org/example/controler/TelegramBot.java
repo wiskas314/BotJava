@@ -28,16 +28,10 @@ import java.util.*;
  * Класс телеграм-бота
  */
 public class TelegramBot extends TelegramLongPollingBot implements MessageSender {
-    private final BalanceService balanceService;
-    private Map<String, Game> activeGames;
     private final String botUsername;
     private final MessageHandler messageHandler;
     private final CallbackHandler callbackHandler;
-    private final KeyboardFactory keyboardFactory;
-    private UserService userService;
-    private final TaskService taskService;
-    private KeyboardBuilder keyboardBuilder;
-    private TaskCallBackHandler taskCallBackHandler;
+    private final UserService userService;
 
     /**
      * конструктор
@@ -45,15 +39,23 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     public TelegramBot(String botUsername, String botToken) {
         super(botToken);
         this.botUsername = botUsername;
-        this.activeGames = new HashMap<>();
-        this.keyboardFactory = new KeyboardFactory();
+        Map<String, Game> activeGames = new HashMap<>();
         userService = new UserService();
+        KeyboardFactory keyboardFactory = new KeyboardFactory();
+        KeyboardBuilder keyboardBuilder = new KeyboardBuilder();
 
-        this.taskService = new TaskService(userService, this, keyboardFactory);
-        this.balanceService = new BalanceService(userService, this, keyboardBuilder,keyboardFactory);
+        TaskService taskService = new TaskService(userService, this, keyboardFactory, keyboardBuilder);
 
-        this.messageHandler = new MessageHandler(this, keyboardFactory,taskService, balanceService,taskCallBackHandler);
-        this.callbackHandler = new CallbackHandler(activeGames,this,keyboardFactory, taskService, userService, balanceService);
+        TaskCallBackHandler taskCallBackHandler = new TaskCallBackHandler(taskService, this,
+                keyboardFactory);
+
+        BalanceService balanceService = new BalanceService(userService, this, keyboardBuilder, keyboardFactory);
+
+        this.messageHandler = new MessageHandler(this, keyboardFactory,
+                taskService, balanceService, taskCallBackHandler, userService);
+
+        this.callbackHandler = new CallbackHandler(activeGames,this, keyboardFactory,
+                taskService, userService, balanceService, taskCallBackHandler);
     }
 
     @Override
@@ -80,7 +82,6 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         CallbackQuery callbackQuery = update.getCallbackQuery();
         String chatId = callbackQuery.getMessage().getChatId().toString();
         String callbackData = callbackQuery.getData();
-        String username = callbackQuery.getFrom().getUserName();
 
         userService.getOrCreateUser(NumberUtils.toLong(chatId), callbackQuery.getFrom().getUserName());
 
@@ -158,10 +159,6 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         String userName = (chat != null) ? chat.getFirstName() : "Неизвестный пользователь";
         return userName;
     }
-
-
-
-
 
     @Override
     public String getBotUsername() {

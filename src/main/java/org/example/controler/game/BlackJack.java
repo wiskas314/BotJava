@@ -18,7 +18,6 @@ public class BlackJack implements Game {
     private Deck deck;
     private final KeyboardBuilder keyboardBuilder;
     private String chatId;
-    private MessageSender gameCallback;
     private boolean isGameOver;
     private boolean isPlayerTurn;
     private int playerScore;
@@ -42,13 +41,6 @@ public class BlackJack implements Game {
         deck.initializeDeck();
         dealerHand = new Card[5];
         playerHand = new Card[5];
-    }
-
-    /**
-     * Устанавливает callback для взаимодействия с внешним миром
-     */
-    public void setGameCallback(MessageSender callback) {
-        this.gameCallback = callback;
     }
 
     @Override
@@ -87,7 +79,8 @@ public class BlackJack implements Game {
     private String getGameStateText() {
         StringBuilder gameState = new StringBuilder();
         gameState.append("🃏 **Black Jack** 🃏\n\n");
-        gameState.append("Ставка: ").append(currentBet).append(" 🪙\n\n");
+        if (!isGameOver){gameState.append("Ставка: ").append(currentBet).append(" 🪙\n\n");}
+
         gameState.append("Ваши карты:  ").append(getHandAsString(playerHand, true)).append("  (Сумма: ").append(playerScore).append(")\n");
 
         boolean showDealerAll = !isPlayerTurn || isGameOver;
@@ -251,10 +244,7 @@ public class BlackJack implements Game {
         } else if ("stand".equals(callbackData)) {
             isPlayerTurn = false;
             return dealerTurn();
-        } else if ("exit".equals(callbackData)) {
-            return handleEarlyExit();
         }
-
         return new GameResponse(
                 new GameMessage(chatId, "Неизвестная команда", null),
                 false
@@ -277,33 +267,6 @@ public class BlackJack implements Game {
         isGameOver = true;
         return handleGameOver(determineIfPlayerWon());
     }
-    /**
-     * Обработка досрочного выхода
-     */
-    private GameResponse handleEarlyExit() {
-        int returnAmount = currentBet;
-        boolean success = userService.payWinnings(Long.valueOf(chatId), returnAmount);
-
-        if (success) {
-            resetGame();
-            return new GameResponse(
-                    new GameMessage(
-                            chatId,
-                            "🚪 Вы вышли из игры досрочно.\n" +
-                                    "💰 Возвращено: " + returnAmount + " 🪙\n" +
-                                    "Хотите сыграть ещё?",
-                            keyboardBuilder.createGameSelectionButtons()
-                    ),
-                    true
-            );
-        } else {
-            resetGame();
-            return new GameResponse(
-                    new GameMessage(chatId, "❌ Ошибка при возврате ставки", null),
-                    true
-            );
-        }
-    }
 
     /**
      * Определение, выиграл ли игрок (без текста — только boolean)
@@ -320,7 +283,6 @@ public class BlackJack implements Game {
      * Обработка конца игры
      */
     private GameResponse handleGameOver(boolean isWinner) {
-        isGameOver = true;
         int winAmount = 0;
         String resultMessage;
 
@@ -361,8 +323,6 @@ public class BlackJack implements Game {
                     "💰 Остаток баланса: " + newBalance + " 🪙\n\n" +
                     "Хотите сыграть ещё?";
         }
-
-        resetGame();
         return new GameResponse(
                 new GameMessage(chatId, getGameStateText() + "\n" + resultMessage,
                         keyboardBuilder.createGameSelectionButtons()),
@@ -385,13 +345,6 @@ public class BlackJack implements Game {
                 bet = userService.getUserBalance(Long.valueOf(chatId));
             } else {
                 bet = Integer.parseInt(callbackData.replace("bet_", ""));
-            }
-
-            if (bet <= 0) {
-                return new GameResponse(
-                        new GameMessage(chatId, "❌ Ставка должна быть больше 0!", null),
-                        false
-                );
             }
 
             if (userService.canPlaceBet(Long.valueOf(chatId), bet)) {
@@ -425,23 +378,6 @@ public class BlackJack implements Game {
     }
 
     /**
-     * Определение текстового результата игры (для отображения в sendGameState)
-     */
-    private String determineWinner() {
-        if (playerScore > 21) {
-            return "Вы **перебрали**! Проигрыш. 😞";
-        } else if (dealerScore > 21) {
-            return "Дилер **перебрал**! Вы выиграли! 🎉";
-        } else if (playerScore > dealerScore) {
-            return "Вы набрали **больше очков**! Победа! 🎉";
-        } else if (dealerScore > playerScore) {
-            return "Дилер набрал **больше очков**! Проигрыш. 😞";
-        } else {
-            return "**Ничья**! 🤝 (ставка возвращается)";
-        }
-    }
-
-    /**
      * Создает клавиатуру Hit/Stand для игры
      */
     public List<List<ButtonData>> createHitOrStandKeyboard() {
@@ -450,7 +386,6 @@ public class BlackJack implements Game {
         List<ButtonData> row = new ArrayList<>();
         row.add(new ButtonData("➕ Взять карту", "hit"));
         row.add(new ButtonData("⛔ Остановиться", "stand"));
-        row.add(new ButtonData("🚪 Выйти", "exit"));
 
         buttonRows.add(row);
 

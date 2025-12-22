@@ -30,10 +30,11 @@ public class TaskService {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public TaskService(UserService userService, MessageSender messageSender, KeyboardFactory keyboardFactory) {
+    public TaskService(UserService userService, MessageSender messageSender, KeyboardFactory keyboardFactory, KeyboardBuilder keyboardBuilder) {
         this.userService = userService;
         this.messageSender = messageSender;
         this.keyboardFactory = keyboardFactory;
+        this.keyboardBuilder = keyboardBuilder;
         startDailyTaskScheduler();
     }
 
@@ -167,6 +168,7 @@ public class TaskService {
      */
     public boolean handleTimeInput(Long chatId, String timeText) {
         try {
+
             String[] parts = timeText.split(":");
             if (parts.length == 3) {
                 int hour = Integer.parseInt(parts[0]);
@@ -263,6 +265,7 @@ public class TaskService {
         List<List<ButtonData>> buttons = new ArrayList<>();
         List<ButtonData> row = new ArrayList<>();
         row.add(new ButtonData("\uD83D\uDCB0 Забрать награду!", "task_claim"));
+        buttons.add(row);
         return keyboardFactory.createKeyboard(buttons);
     }
 
@@ -321,8 +324,9 @@ public class TaskService {
                     if (timeParts.length == 3) {
                         int hour = Integer.parseInt(timeParts[0]);
                         int minute = Integer.parseInt(timeParts[1]);
+                        int second = Integer.parseInt(timeParts[2]);
 
-                        if (now.getHour() == hour && now.getMinute() == minute) {
+                        if (now.getHour() == hour && now.getMinute() == minute && now.getSecond() == second) {
                             ActiveTaskInfoDTO currentTask = activeTaskDTOs.get(chatId);
                             if (currentTask == null || !currentTask.assignedDate.equals(LocalDate.now())) {
                                 createNewTaskForUser(chatId);
@@ -340,8 +344,6 @@ public class TaskService {
     private Set<Long> getAllUsersWithTasks() {
         return new HashSet<>(taskSettingsMap.keySet());
     }
-
-    // === УТИЛИТЫ ===
 
     private boolean isValidTime(int hour, int minute, int second) {
         return hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60;

@@ -39,27 +39,21 @@ public class BalanceService {
     /**
      * Обработка callback для пополнения баланса
      */
-    public GameResponse handleBalanceReplenishment(String chatId) {
+    public void handleBalanceReplenishment(String chatId) {
         Long userId = NumberUtils.toLong(chatId);
-
+        String messageText = null;
         boolean success = replenishBalance(userId, 1000);
 
         if (success) {
             int newBalance = userService.getUserBalance(userId);
-            String messageText = "✅ Баланс пополнен на 1000 🪙\n💰 Новый баланс: " + newBalance + " 🪙";
+            messageText = "✅ Баланс пополнен на 1000 🪙\n💰 Новый баланс: " + newBalance + " 🪙";
 
-            return new GameResponse(
-                    new GameMessage(chatId, messageText, keyboardBuilder.createGameSelectionButtons()),
-                    true
-            );
         } else {
-            String messageText = "❌ Ошибка при пополнении баланса";
+            messageText = "❌ Ошибка при пополнении баланса";
 
-            return new GameResponse(
-                    new GameMessage(chatId, messageText, keyboardBuilder.createGameSelectionButtons()),
-                    true
-            );
         }
+        messageSender.sendMessage(messageText, String.valueOf(chatId),
+                keyboardFactory.createKeyboard(keyboardBuilder.createGameSelectionButtons()));
     }
 
     /**

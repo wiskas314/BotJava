@@ -1,6 +1,5 @@
 package org.example.controler.handlers;
 
-import ch.qos.logback.core.net.SyslogOutputStream;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.example.controler.BalanceService;
 import org.example.controler.db.UserService;
@@ -31,16 +30,18 @@ public class CallbackHandler {
     private final TaskService taskService;
     private final TaskCallBackHandler taskCallBackHandler;
     private final BalanceService balanceService;
-    private UserService userService;
+    private final UserService userService;
 
     public CallbackHandler(Map<String, Game> activeGames, MessageSender messageSender, KeyboardFactory keyboardFactory,
-                           TaskService taskService, UserService userService, BalanceService balanceService) {
+                           TaskService taskService, UserService userService, BalanceService balanceService,
+                           TaskCallBackHandler taskCallBackHandler) {
+
         this.activeGames = activeGames;
         this.messageSender = messageSender;
         this.keyboardFactory = keyboardFactory;
         this.taskService = taskService;
-        this.taskCallBackHandler = new TaskCallBackHandler(taskService, messageSender, keyboardFactory);
         this.userService = userService;
+        this.taskCallBackHandler = taskCallBackHandler;
         this.balanceService = balanceService;
     }
     /**
@@ -49,12 +50,13 @@ public class CallbackHandler {
     public void handleCallback(CallbackData callbackData) {
         String chatId = callbackData.getChatId();
         String callback = callbackData.getCallbackData();
+        System.out.println("Мы обрабатываем просто колбэк");
 
         if (callback.equals("ride_the_bus")) {
             startRideTheBus(chatId);
             return;
         }
-        if (callbackData.equals("black_jack")) {
+        if (callback.equals("black_jack")) {
             startBlackJack(chatId);
             return;
         }
@@ -63,40 +65,37 @@ public class CallbackHandler {
             return;
         }
 
-        if (callbackData.equals("black_jack_stat")) {
+        if (callback.equals("black_jack_stat")) {
             sendBJStat(chatId);
             return;
         }
-        if (callbackData.equals("ride_the_bus_stat")) {
+        if (callback.equals("ride_the_bus_stat")) {
             sendRTBStat(chatId);
             return;
         }
-        if (callbackData.equals("exit")) {
-            endGame(chatId, callback);
-            return;
-        }
+
         if (callback.startsWith("bet_")) {
-            Game game = activeGames.get(chatId);
-            if (game != null) {
-                game.processBet(callback);
-            }
+            placeBet(chatId, callback);
             return;
         }
 
-        if (callbackData.equals("add_balance_1000")) {
+        if (callback.equals("add_balance_1000")) {
             balanceService.handleBalanceReplenishment(chatId);
             return;
         }
-        endGame(chatId, callback);
-        return;
+
+        Game activeGame = activeGames.get(chatId);
+        if (activeGame != null) {
+            handleActiveGameCallback(activeGame, chatId,callback);
+        }
     }
 
 
-
-    private void endGame(String chatId, String callback){
-        Game activeGame = activeGames.get(chatId);
-        if (activeGame != null) {
-            handleActiveGameCallback(activeGame, chatId, callback);
+    private void placeBet(String chatId, String callback){
+        Game game = activeGames.get(chatId);
+        if (game != null) {
+            GameResponse response = game.processBet(callback);
+            handleGameResponse(response);
         }
     }
 
@@ -118,7 +117,7 @@ public class CallbackHandler {
 
     private void startBlackJack(String chatId) {
         activeGames.remove(chatId);
-        BlackJack game = new BlackJack();
+        Game game = new BlackJack();
         activeGames.put(chatId, game);
 
         GameResponse response = game.startGame(chatId);
@@ -130,7 +129,7 @@ public class CallbackHandler {
      */
     private void startRideTheBus(String chatId) {
         activeGames.remove(chatId);
-        RideTheBus game = new RideTheBus();
+        Game game = new RideTheBus();
         activeGames.put(chatId, game);
 
         GameResponse response = game.startGame(chatId);

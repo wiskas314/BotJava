@@ -19,19 +19,21 @@ public class TaskCallBackHandler {
     private final TaskService taskService;
     private final MessageSender messageSender;
     private final KeyboardFactory keyboardFactory;
-    private  KeyboardBuilder keyboardBuilder;
 
     public TaskCallBackHandler(TaskService taskService, MessageSender messageSender,
                                KeyboardFactory keyboardFactory) {
         this.taskService = taskService;
         this.messageSender = messageSender;
         this.keyboardFactory = keyboardFactory;
+
+
     }
 
     /**
      * Обработка callback от настроек заданий
      */
     public void handleTaskSettingsCallback(Long chatId, String callbackData) {
+        System.out.println("Мы обрабатываем таск колбэк");
         switch (callbackData) {
             case "task_toggle":
                 taskService.toggleTaskStatus(chatId);
@@ -60,14 +62,6 @@ public class TaskCallBackHandler {
             case "task_change_difficulty":
                 taskService.toggleDifficulty(chatId);
                 openTaskSettings(String.valueOf(chatId));
-                break;
-
-            case "task_save":
-                messageSender.sendMessage(
-                        "✅ Настройки сохранены!",
-                        String.valueOf(chatId),
-                        keyboardFactory.createKeyboard(keyboardBuilder.createGameSelectionButtons())
-                );
                 break;
 
             case "task_claim":
@@ -112,15 +106,10 @@ public class TaskCallBackHandler {
         row.add(new ButtonData("⏰ " + time, "task_change_time"));
         buttons.add(row);
 
-
         List<ButtonData> row2 = new ArrayList<>();
         row2.add(new ButtonData(difficulty, "task_change_difficulty"));
         row2.add(new ButtonData("→ " + difficultyText, "task_change_difficulty"));
         buttons.add(row2);
-
-        List<ButtonData> row3 = new ArrayList<>();
-        row3.add(new ButtonData("\uD83D\uDCBE Сохранить", "task_save"));
-        buttons.add(row3);
 
         return keyboardFactory.createKeyboard(buttons);
     }
