@@ -3,8 +3,6 @@ import org.example.controler.dto.ButtonData;
 import org.example.controler.dto.KeyboardMarkup;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +13,6 @@ import org.junit.jupiter.api.Assertions.*;
  * тестовый класс содержит тесты для метод создания клавиатур
  */
 class KeyBoardFactoryTest {
-
-    private KeyboardFactory keyboardFactory = new KeyboardFactory();
 
     @Test
     void testCreateKeyboard() {

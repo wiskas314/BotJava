@@ -353,4 +353,12 @@ public class TaskService {
         messageSender.sendMessage(message, String.valueOf(chatId), null);
     }
 
+    public void addTestTask(ActiveTaskInfoDTO task) {
+        activeTaskDTOs.put(task.chatId, task);
+    }
+
+    public ActiveTaskInfoDTO getActiveTask(Long chatId){
+        return activeTaskDTOs.get(chatId);
+    }
+
 }

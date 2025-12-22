@@ -52,7 +52,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         BalanceService balanceService = new BalanceService(userService, this, keyboardBuilder, keyboardFactory);
 
         this.messageHandler = new MessageHandler(this, keyboardFactory,
-                taskService, balanceService, taskCallBackHandler, userService);
+                taskService, balanceService, taskCallBackHandler);
 
         this.callbackHandler = new CallbackHandler(activeGames,this, keyboardFactory,
                 taskService, userService, balanceService, taskCallBackHandler);
