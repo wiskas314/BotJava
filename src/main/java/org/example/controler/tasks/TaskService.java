@@ -357,8 +357,4 @@ public class TaskService {
         activeTaskDTOs.put(task.chatId, task);
     }
 
-    public ActiveTaskInfoDTO getActiveTask(Long chatId){
-        return activeTaskDTOs.get(chatId);
-    }
-
 }
