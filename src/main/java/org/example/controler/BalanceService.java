@@ -1,7 +1,9 @@
 package org.example.controler;
-import org.example.controler.db.User;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.example.controler.db.UserService;
-import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.example.controler.dto.KeyboardMarkup;
+import org.example.controler.game.GameMessage;
+import org.example.controler.game.GameResponse;
 
 /**
  * Сервис для работы с балансом пользователя
@@ -9,19 +11,21 @@ import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 public class BalanceService {
     private UserService userService;
     private MessageSender messageSender;
+    private KeyboardBuilder keyboardBuilder;
     private KeyboardFactory keyboardFactory;
 
-    public BalanceService(UserService userService, MessageSender messageSender, KeyboardFactory keyboardFactory) {
+    public BalanceService(UserService userService, MessageSender messageSender, KeyboardBuilder keyboardBuilder,
+                          KeyboardFactory keyboardFactory) {
         this.userService = userService;
         this.messageSender = messageSender;
-        this.keyboardFactory = keyboardFactory;
+        this.keyboardBuilder = keyboardBuilder;
+        this.keyboardFactory= keyboardFactory;
     }
 
     /**
      * Пополнение баланса пользователя
      */
-    public boolean replenishBalance(Long userId, String username, int amount) {
-        User user = userService.getOrCreateUser(userId, username);
+    public boolean replenishBalance(Long userId, int amount) {
         return userService.payWinnings(userId, amount);
     }
 
@@ -35,27 +39,21 @@ public class BalanceService {
     /**
      * Обработка callback для пополнения баланса
      */
-    public void handleBalanceReplenishment(CallbackQuery callbackQuery) {
-        String chatId = callbackQuery.getMessage().getChatId().toString();
-        Long userId = callbackQuery.getFrom().getId();
-        String username = callbackQuery.getFrom().getUserName();
-
-        boolean success = replenishBalance(userId, username, 1000);
+    public void handleBalanceReplenishment(String chatId) {
+        Long userId = NumberUtils.toLong(chatId);
+        String messageText = null;
+        boolean success = replenishBalance(userId, 1000);
 
         if (success) {
-            int newBalance = getUserBalance(userId);
-            messageSender.sendMessage(
-                    "Баланс пополнен на 1000\nНовый баланс: " + newBalance,
-                    chatId,
-                    keyboardFactory.createGameSelectionKeyboard()
-            );
+            int newBalance = userService.getUserBalance(userId);
+            messageText = "✅ Баланс пополнен на 1000 🪙\n💰 Новый баланс: " + newBalance + " 🪙";
+
         } else {
-            messageSender.sendMessage(
-                    "Ошибка при пополнении баланса",
-                    chatId,
-                    keyboardFactory.createGameSelectionKeyboard()
-            );
+            messageText = "❌ Ошибка при пополнении баланса";
+
         }
+        messageSender.sendMessage(messageText, String.valueOf(chatId),
+                keyboardFactory.createKeyboard(keyboardBuilder.createGameSelectionButtons()));
     }
 
     /**
@@ -64,6 +62,6 @@ public class BalanceService {
     public void handleBalanceCommand(Long chatId) {
         int balance = getUserBalance(chatId);
         messageSender.sendMessage("Ваш баланс: " + balance, String.valueOf(chatId),
-                keyboardFactory.createReplenishKeyboard());
+                 keyboardFactory.createKeyboard(keyboardBuilder.createReplenishKeyboard()));
     }
 }

@@ -1,6 +1,6 @@
 package org.example.controler.tasks;
 
-import org.example.controler.tasks.dto.ActiveTaskInfoDTO;
+import org.example.controler.dto.ActiveTaskInfoDTO;
 import java.time.LocalDate;
 import java.util.Random;
 
@@ -44,7 +44,6 @@ public class TaskGenerator {
                 chatId,
                 "WIN_BLACKJACK",
                 "Выиграть " + target + " игры в Blackjack",
-                isHard ? "HARD" : "EASY",
                 reward,
                 target,
                 0, // currentValue
@@ -65,7 +64,6 @@ public class TaskGenerator {
                 chatId,
                 "PLAY_BLACKJACK",
                 "Сыграть " + target + " игр в Blackjack",
-                isHard ? "HARD" : "EASY",
                 reward,
                 target,
                 0,
@@ -86,7 +84,6 @@ public class TaskGenerator {
                 chatId,
                 "EARN_BLACKJACK",
                 "Заработать " + target + " кредитов в Blackjack",
-                isHard ? "HARD" : "EASY",
                 reward,
                 target,
                 0,
@@ -107,7 +104,6 @@ public class TaskGenerator {
                 chatId,
                 "WIN_RIDE_THE_BUS",
                 "Выиграть " + target + " игры в Ride the Bus",
-                isHard ? "HARD" : "EASY",
                 reward,
                 target,
                 0,
@@ -128,7 +124,6 @@ public class TaskGenerator {
                 chatId,
                 "PLAY_RIDE_THE_BUS",
                 "Сыграть " + target + " игр в Ride the Bus",
-                isHard ? "HARD" : "EASY",
                 reward,
                 target,
                 0,
@@ -149,7 +144,6 @@ public class TaskGenerator {
                 chatId,
                 "EARN_ANY",
                 "Заработать " + target + " кредитов в любой игре",
-                isHard ? "HARD" : "EASY",
                 reward,
                 target,
                 0,

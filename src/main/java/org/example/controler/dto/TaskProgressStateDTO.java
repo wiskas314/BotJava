@@ -1,4 +1,4 @@
-package org.example.controler.tasks.dto;
+package org.example.controler.dto;
 
 public class TaskProgressStateDTO {
     public int bjWins;

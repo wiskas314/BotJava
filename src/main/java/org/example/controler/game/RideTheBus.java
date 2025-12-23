@@ -1,12 +1,16 @@
 package org.example.controler.game;
 
 
+import org.example.controler.KeyboardBuilder;
 import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
-import org.example.controler.cards.Card;
-import org.example.controler.cards.Deck;
+import org.example.controler.game.cards.Card;
+import org.example.controler.game.cards.Deck;
 import org.example.controler.db.UserService;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.example.controler.dto.ButtonData;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Класс Реализующий игру в Ride The Bus
@@ -14,9 +18,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 public class RideTheBus implements Game {
     private Deck deck;
     private String specialCard;
-    private final KeyboardFactory keyboardFactory;
+    private final KeyboardBuilder keyboardBuilder;
     private String chatId;
-    private MessageSender gameCallback;
     private boolean isGameOver;
     private Card[] table;
     private int roundNumber;
@@ -27,7 +30,7 @@ public class RideTheBus implements Game {
     private final int[] multipliers = {1, 2, 3, 5, 8};
 
     public RideTheBus() {
-        keyboardFactory = new KeyboardFactory();
+        keyboardBuilder = new KeyboardBuilder();
         specialCard = "\uD83C\uDCCF";
         isGameOver = false;
         deck = new Deck();
@@ -38,15 +41,9 @@ public class RideTheBus implements Game {
         roundNumber = 1;
     }
 
-    /**
-     * Установка пользователя
-     */
-    public void setGameCallback(MessageSender callback) {
-        this.gameCallback = callback;
-    }
 
     /**
-     *Добавление карты на стол
+     * Добавление карты на стол
      */
     public void addToTable(Card card) {
         for (int i = 0; i < 4; i++) {
@@ -58,11 +55,11 @@ public class RideTheBus implements Game {
     }
 
     /**
-     *Получение карт на столе как строку, а не как массив Card
+     * Получение карт на столе как строку, а не как массив Card
      */
-    public String getTableAsString(){
+    public String getTableAsString() {
         String tableAsString = "";
-        for (Card tableCard : table){
+        for (Card tableCard : table) {
             if (tableCard == null) break;
             tableAsString += tableCard.getCard();
         }
@@ -107,23 +104,38 @@ public class RideTheBus implements Game {
     }
 
     @Override
-    public void startGame(String chatId) {
+    public GameResponse startGame(String chatId) {
         this.chatId = chatId;
         int balance = userService.getUserBalance(Long.valueOf(chatId));
         if (!betPlaced) {
-            if(balance==0){
-                gameCallback.sendMessage("Вам нужно пополнить баланс",chatId,keyboardFactory.createReplenishKeyboard());
-            }else{
-                gameCallback.sendMessage("Ваш баланс " + balance + " Сделайте ставку для начала игры",
-                        chatId, keyboardFactory.createBetKeyboard());
+            if (balance == 0) {
+                return new GameResponse(
+                        new GameMessage(
+                                chatId,
+                                "Вам нужно пополнить баланс",
+                                keyboardBuilder.createReplenishKeyboard()
+                        ),
+                        true
+                );
+            } else {
+                return new GameResponse(
+                        new GameMessage(
+                                chatId,
+                                "Ваш баланс " + balance + " 🪙\nСделайте ставку для начала игры",
+                                keyboardBuilder.createBetKeyboard()
+                        ),
+                        false
+                );
             }
-        }else{
-            play();
+        } else {
+            return play();
         }
     }
 
     @Override
-    public boolean getIsGameOver(){return isGameOver;}
+    public boolean getIsGameOver() {
+        return isGameOver;
+    }
 
     /**
      * Сброс состояния игры
@@ -140,91 +152,94 @@ public class RideTheBus implements Game {
     /**
      * Метод реализующий интерфейс во время игры
      */
-    private void play() {
+    private GameResponse play() {
         currentMultiplier = multipliers[roundNumber - 1];
         String roundText = "";
-        InlineKeyboardMarkup keyboard = null;
+        List<List<ButtonData>> keyboard = null;
 
         switch (roundNumber) {
             case 1:
                 roundText = "Раунд 1 \nВыберите цвет:";
-                keyboard = keyboardFactory.keyboardFirstRound();
+                keyboard = createDynamicRoundKeyboard();
                 break;
 
             case 2:
                 roundText = "Раунд 2 \nВыберите будет ли следующая карта старшей или младшей масти:";
-                keyboard = keyboardFactory.createHigherLowerKeyboard();
+                keyboard = createDynamicRoundKeyboard();
                 break;
 
             case 3:
                 roundText = "Раунд 3 \nВыберите будет ли следующая карта внутри или вне диапазона:";
-                keyboard = keyboardFactory.createRangeKeyboard();
+                keyboard = createDynamicRoundKeyboard();
                 break;
 
             case 4:
                 roundText = "Раунд 4 \nВыберите какой масти будет следующая карта:";
-                keyboard = keyboardFactory.createSuitGuessKeyboard();
+                keyboard = createDynamicRoundKeyboard();
                 break;
-
-            case 5:
-                handleGameOver(true);
-                return;
         }
 
-        if (keyboard != null) {
-            gameCallback.sendMessage(roundText + "\n" + getTableAsString() + " " + specialCard, chatId, keyboard);
-        }
+
+        GameMessage message = new GameMessage(chatId,roundText + "\n" + getTableAsString() + " " + specialCard, keyboard);
+        return new GameResponse(message, false);
+
     }
 
     @Override
-    public void processUserChoice(String callbackData) {
-        if (isGameOver || gameCallback == null) {
-            return;
+    public GameResponse processUserChoice(String callbackData) {
+        if (isGameOver) {
+            return new GameResponse(null, true);
         }
-
         if (callbackData.equals("exit")) {
             int winAmount = currentBet * currentMultiplier;
             boolean success = userService.payWinnings(Long.valueOf(chatId), winAmount);
 
             if (success) {
                 int newBalance = userService.getUserBalance(Long.valueOf(chatId));
-                userService.changeWinAndEarnedRideTheBus(Long.valueOf(chatId), winAmount-currentBet);
-                userService.changeEarned(Long.valueOf(chatId),winAmount-currentBet);
-                gameCallback.sendMessage("🎉 Вы забрали выигрыш!\n" +
-                                "💎 Выигрыш: " + winAmount + " 🪙\n" +
-                                "💰 Новый баланс: " + newBalance + " 🪙\n\n" +
-                                "Хотите сыграть еще?",
-                        chatId,
-                        keyboardFactory.createGameSelectionKeyboard());
+                userService.changeWinAndEarnedRideTheBus(Long.valueOf(chatId), winAmount - currentBet);
+                userService.changeEarned(Long.valueOf(chatId), winAmount - currentBet);
+
+                String messageText = "🎉 Вы забрали выигрыш!\n" +
+                        "💎 Выигрыш: " + winAmount + " 🪙\n" +
+                        "💰 Новый баланс: " + newBalance + " 🪙\n\n" +
+                        "Хотите сыграть еще?";
+
+                resetGame();
+                return new GameResponse(
+                        new GameMessage(chatId, messageText, keyboardBuilder.createGameSelectionButtons()),
+                        true
+                );
             } else {
-                gameCallback.sendMessage("❌ Ошибка при выплате выигрыша", chatId, null);
+                return new GameResponse(
+                        new GameMessage(chatId, "❌ Ошибка при выплате выигрыша", null),
+                        true
+                );
             }
-            resetGame();
-            return;
         }
         Card card = deck.dealCard();
         addToTable(card);
         boolean isWin = checkWin(callbackData, card);
 
         if (isWin) {
-            gameCallback.sendMessage(getTableAsString() + "\nПоздравляем, вы выиграли!",chatId,null);
-
             if (roundNumber == 4) {
-                handleGameOver(true);
+                return handleGameOver(true);
             } else {
-                roundNumber=roundNumber+1;
-                play();
+                roundNumber = roundNumber + 1;
+                return play();
             }
         } else {
-            handleGameOver(false);
+            return handleGameOver(false);
         }
 
     }
 
     @Override
-    public void processBet(String callbackData) {
+    public GameResponse processBet(String callbackData) {
         if (betPlaced) {
-            return;
+            return new GameResponse(
+                    new GameMessage(chatId, "Ставка уже размещена", null),
+                    false
+            );
         }
 
         try {
@@ -239,55 +254,113 @@ public class RideTheBus implements Game {
                 if (userService.placeBet(Long.valueOf(chatId), bet)) {
                     currentBet = bet;
                     betPlaced = true;
-                    int balance = userService.getUserBalance(Long.valueOf(chatId));
-                    gameCallback.sendMessage("✅ Ставка " + bet + " 🪙 принята!\n💰 Текущий баланс: " + balance + " 🪙\n\nНачинаем игру Ride The Bus!",
-                            chatId, null);
-                    play();
+
+                    return play();
                 } else {
-                    gameCallback.sendMessage("❌ Ошибка при размещении ставки", chatId, null);
+                    return new GameResponse(
+                            new GameMessage(chatId, "❌ Ошибка при размещении ставки", null),
+                            false
+                    );
                 }
             } else {
                 int balance = userService.getUserBalance(Long.valueOf(chatId));
-                gameCallback.sendMessage("❌ Недостаточно средств для ставки " + bet + " 🪙\n💰 Ваш баланс: " + balance + " 🪙",
-                        chatId, keyboardFactory.createBetKeyboard());
+                String messageText = "❌ Недостаточно средств для ставки " + bet + " 🪙\n💰 Ваш баланс: " + balance + " 🪙";
+                return new GameResponse(
+                        new GameMessage(chatId, messageText, keyboardBuilder.createBetKeyboard()),
+                        false
+                );
             }
         } catch (NumberFormatException e) {
-            gameCallback.sendMessage("❌ Неверный формат ставки", chatId, null);
+            return new GameResponse(
+                    new GameMessage(chatId, "❌ Неверный формат ставки", null),
+                    false
+            );
         }
+    }
+    /**
+     *создает динамическую клавиатуру с кнопками выбора соответствующими текущему раунду игры
+     */
+    private List<List<ButtonData>> createDynamicRoundKeyboard(){
+        List<List<ButtonData>> buttonRows = new ArrayList<>();
+        switch (roundNumber){
+            case 1:
+                List<ButtonData> round1Butons=new ArrayList<>();
+                round1Butons.add(new ButtonData("Красный","red"));
+                round1Butons.add(new ButtonData("Черный","black"));
+                buttonRows.add(round1Butons);
+                break;
+            case 2:
+                List<ButtonData> round2Butons=new ArrayList<>();
+                round2Butons.add(new ButtonData("Выше","higher"));
+                round2Butons.add(new ButtonData("Ниже","lower"));
+                round2Butons.add(new ButtonData("🚪 Забрать выигрыш", "exit"));
+                buttonRows.add(round2Butons);
+                break;
+            case 3:
+                List<ButtonData> round3Butons=new ArrayList<>();
+                round3Butons.add(new ButtonData("Внутри диапазона","inside"));
+                round3Butons.add(new ButtonData("Вне диапазона","outside"));
+                round3Butons.add(new ButtonData("🚪 Забрать выигрыш", "exit"));
+                buttonRows.add(round3Butons);
+                break;
+            case 4:
+                List<ButtonData> round4Butons =new ArrayList<>();
+                round4Butons.add(new ButtonData("♥ Черви","hearts"));
+                round4Butons.add(new ButtonData("♦ Бубны","diamonds"));
+                buttonRows.add(round4Butons);
+                List<ButtonData> secondround4Butons =new ArrayList<>();
+                secondround4Butons.add(new ButtonData("♣ Трефы","clubs"));
+                secondround4Butons.add(new ButtonData("♠ Пики","peaks"));
+                secondround4Butons.add(new ButtonData("🚪 Забрать выигрыш", "exit"));
+                buttonRows.add(secondround4Butons);
+                break;
+        }
+        return buttonRows;
     }
 
     /**
      * Обработка конца игры
      */
-    private void handleGameOver(boolean isWinner) {
+    private GameResponse handleGameOver(boolean isWinner) {
         if (isWinner) {
             int winAmount = currentBet * 10; // Множитель для полной победы
             boolean success = userService.payWinnings(Long.valueOf(chatId), winAmount);
-
             if (success) {
                 int newBalance = userService.getUserBalance(Long.valueOf(chatId));
                 userService.changeWinAndEarnedRideTheBus(Long.valueOf(chatId), currentBet * 9);
                 userService.changeEarned(Long.valueOf(chatId), currentBet * 9);
-                gameCallback.sendMessage(getTableAsString() +
-                                "\n🎉 Поздравляем! Вы прошли все раунды!\n" +
-                                "💎 Выигрыш: " + winAmount + " 🪙\n" +
-                                "💰 Новый баланс: " + newBalance + " 🪙\n\n" +
-                                "Хотите сыграть еще?",
-                        chatId,
-                        keyboardFactory.createGameSelectionKeyboard());
+
+                String messageText = getTableAsString() +
+                        "\n🎉 Поздравляем! Вы прошли все раунды!\n" +
+                        "💎 Выигрыш: " + winAmount + " 🪙\n" +
+                        "💰 Новый баланс: " + newBalance + " 🪙\n\n" +
+                        "Хотите сыграть еще?";
+
+                resetGame();
+                return new GameResponse(
+                        new GameMessage(chatId, messageText, keyboardBuilder.createGameSelectionButtons()),
+                        true
+                );
             } else {
-                gameCallback.sendMessage("❌ Ошибка при выплате выигрыша", chatId, null);
+                resetGame();
+                return new GameResponse(
+                        new GameMessage(chatId, "❌ Ошибка при выплате выигрыша", null),
+                        true
+                );
             }
         } else {
             userService.changeLossesAndLostRideTheBus(Long.valueOf(chatId), currentBet);
             Card lastCard = table[table.length - 1];
-            gameCallback.sendMessage("❌ Неверно! Карта: " + (lastCard != null ? lastCard.getCard() : "") +
-                            "\n" + getTableAsString() +
-                            "\nК сожалению, вы проиграли! Хотите сыграть снова?",
-                    chatId,
-                    keyboardFactory.createGameSelectionKeyboard());
+
+            String messageText = "❌ Неверно! Карта: " + (lastCard != null ? lastCard.getCard() : "") +
+                    "\n" + getTableAsString() +
+                    "\nК сожалению, вы проиграли! Хотите сыграть снова?";
+
+            resetGame();
+            return new GameResponse(
+                    new GameMessage(chatId, messageText, keyboardBuilder.createGameSelectionButtons()),
+                    true
+            );
         }
-        resetGame();
-        isGameOver = true;
     }
 }
