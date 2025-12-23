@@ -1,5 +1,9 @@
 package org.example.controler.dto;
 
+/**
+ * Класс для настроек ежедневных заданий пользователя
+ * Содержит настройки уведомлений, сложности и статуса заданий
+ */
 public class TaskSettingsDTO {
     public Long chatId;
     public boolean enabled;

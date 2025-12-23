@@ -9,7 +9,6 @@ import org.example.controler.db.UserService;
 import org.example.controler.dto.ButtonData;
 import org.example.controler.dto.KeyboardMarkup;
 import org.example.controler.dto.MessageData;
-import org.example.controler.dto.TaskSettingsDTO;
 import org.example.controler.tasks.TaskService;
 
 
@@ -120,7 +119,10 @@ private void getTopPlayersMessage(String chatId) {
     messageSender.sendMessage(message.toString(), chatId, null);
 }
 
-private void handleStatisticAllCommand(String chatId) {
+    /**
+     *Обработка команды /statistic_all
+     */
+    private void handleStatisticAllCommand(String chatId) {
     int totalWins = userService.getBjWins(NumberUtils.toLong(chatId)) + userService.getRtbWins(NumberUtils.toLong(chatId));
     int totalLosses = userService.getBjLosses(NumberUtils.toLong(chatId)) + userService.getRtbLosses(NumberUtils.toLong(chatId));
     int totalEarned = userService.getBjEarned(NumberUtils.toLong(chatId)) + userService.getRtbEarned(NumberUtils.toLong(chatId));
@@ -179,7 +181,10 @@ private boolean isValidTimeFormat(String text) {
     return false;
 }
 
-private void handleStatisticCommand(String chatId){
+    /**
+     * Обрабатывает команду /statistic
+     */
+    private void handleStatisticCommand(String chatId){
     List<List<ButtonData>> buttonRows = new ArrayList<>();
     List<ButtonData> row = new ArrayList<>();
     row.add(new ButtonData("Статистика Black Jack", "black_jack_stat"));

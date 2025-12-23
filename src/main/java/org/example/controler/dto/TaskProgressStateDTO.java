@@ -1,5 +1,9 @@
 package org.example.controler.dto;
 
+/**
+ * Класс для состояния прогресса пользователя в играх
+ * Содержит статистику по играм Blackjack и Ride the Bus
+ */
 public class TaskProgressStateDTO {
     public int bjWins;
     public int bjLosses;

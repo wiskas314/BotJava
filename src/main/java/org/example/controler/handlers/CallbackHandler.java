@@ -90,7 +90,9 @@ public class CallbackHandler {
         }
     }
 
-
+    /**
+     * Размещение ставки
+     */
     private void placeBet(String chatId, String callback){
         Game game = activeGames.get(chatId);
         if (game != null) {
@@ -99,6 +101,9 @@ public class CallbackHandler {
         }
     }
 
+    /**
+     * Отправка статистики Black Jack
+     */
     private void sendBJStat(String chatId){
         String text = "Количество побед - поражений: " + String.valueOf(userService.getBjWins(NumberUtils.toLong(chatId))) + "-" +
                 String.valueOf(userService.getBjLosses(NumberUtils.toLong(chatId))) + "\n" +
@@ -107,6 +112,9 @@ public class CallbackHandler {
         messageSender.sendMessage(text, chatId, null);
     }
 
+    /**
+     * Отправка статистики Ride The Bus
+     */
     private void sendRTBStat(String chatId){
         String text = "Количество побед - поражений:  " + String.valueOf(userService.getRtbWins(NumberUtils.toLong(chatId))) + "-" +
                 String.valueOf(userService.getRtbLosses(NumberUtils.toLong(chatId))) + "\n" +
@@ -115,6 +123,9 @@ public class CallbackHandler {
         messageSender.sendMessage(text, chatId, null);
     }
 
+    /**
+     * Запуск игры Black Jack
+     */
     private void startBlackJack(String chatId) {
         activeGames.remove(chatId);
         Game game = new BlackJack();

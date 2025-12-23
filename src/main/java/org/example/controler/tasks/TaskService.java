@@ -345,12 +345,25 @@ public class TaskService {
         return new HashSet<>(taskSettingsMap.keySet());
     }
 
+    /**
+     * Проверка на корректный ввод времени
+     */
     private boolean isValidTime(int hour, int minute, int second) {
         return hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60;
     }
 
+    /**
+     * Отправить сообщение об ошибке
+     */
     private void sendErrorMessage(Long chatId, String message) {
         messageSender.sendMessage(message, String.valueOf(chatId), null);
+    }
+
+    /**
+     * Метод для тестов
+     */
+    public void addTestTask(ActiveTaskInfoDTO task) {
+        activeTaskDTOs.put(task.chatId, task);
     }
 
 }

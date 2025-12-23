@@ -2,6 +2,10 @@ package org.example.controler.dto;
 
 import java.time.LocalDate;
 
+/**
+ * Класс для активного задания пользователя
+ * Содержит информацию о текущем задании, его прогрессе и награде
+ */
 public class ActiveTaskInfoDTO {
     public Long chatId;
     public String taskType;
