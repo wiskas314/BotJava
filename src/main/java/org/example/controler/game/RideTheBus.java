@@ -363,4 +363,11 @@ public class RideTheBus implements Game {
             );
         }
     }
+
+    /**
+     * Метод для тестирования!
+     */
+    public void setBetPlacedForTest(){
+        betPlaced = true;
+    }
 }

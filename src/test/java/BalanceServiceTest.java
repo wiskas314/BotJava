@@ -1,4 +1,5 @@
 import org.example.controler.BalanceService;
+import org.example.controler.KeyboardBuilder;
 import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
 import org.example.controler.db.UserService;
@@ -12,14 +13,15 @@ import org.mockito.MockitoAnnotations;
 public class BalanceServiceTest {
     private UserService userService;
     private BalanceService balanceService;
+    private KeyboardFactory keyboardFactory;
+    private KeyboardBuilder keyboardBuilder;
     private static final Long TEST_CHAT_ID = 99991L;
     private static final String TEST_USERNAME = "test_user_991";
 
     @Mock
     private MessageSender messageSender;
 
-    @Mock
-    private KeyboardFactory keyboardFactory;
+
 
     /**
      * Инициализация тестового окружения перед выполнением каждого теста.
@@ -31,7 +33,9 @@ public class BalanceServiceTest {
 
         userService = new UserService();
         userService.getOrCreateUser(TEST_CHAT_ID, TEST_USERNAME);
-        balanceService = new BalanceService(userService, messageSender, keyboardFactory);
+        keyboardBuilder = new KeyboardBuilder();
+        keyboardFactory = new KeyboardFactory();
+        balanceService = new BalanceService(userService, messageSender, keyboardBuilder, keyboardFactory);
     }
 
     /**
@@ -47,9 +51,9 @@ public class BalanceServiceTest {
 
 
         Mockito.verify(messageSender).sendMessage(
-                "Ваш баланс: " + testBalance,
-                String.valueOf(chatId),
-                keyboardFactory.createReplenishKeyboard()
+                Mockito.eq("Ваш баланс: " + testBalance),
+                Mockito.eq(String.valueOf(chatId)),
+                Mockito.any()
         );
     }
 

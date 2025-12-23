@@ -22,7 +22,7 @@ public class BotConfig {
         if (args.length > 0) {
             return args[0];
         }
-        return System.getProperty("BOT_TOKEN", "8398612406:AAFcCTlSaqgGFx6tOS4DUW_IV74N9H-YprQ");
+        return System.getProperty("BOT_TOKEN", "-");
     }
 
     /**
@@ -32,7 +32,7 @@ public class BotConfig {
         if (args.length > 1) {
             return args[1];
         }
-        return System.getProperty("BOT_USERNAME", "@Oopgam_bot");
+        return System.getProperty("BOT_USERNAME", "-");
     }
 
     /**
