@@ -1,6 +1,4 @@
-package org.example.controler;
-
-import org.example.controler.dto.ButtonData;
+package org.example.controler.keyboard;
 
 import java.util.ArrayList;
 import java.util.List;

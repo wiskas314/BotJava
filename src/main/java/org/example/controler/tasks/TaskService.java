@@ -1,10 +1,10 @@
 package org.example.controler.tasks;
 
-import org.example.controler.KeyboardBuilder;
-import org.example.controler.dto.*;
-import org.example.controler.KeyboardFactory;
+import org.example.controler.keyboard.ButtonData;
+import org.example.controler.keyboard.KeyboardBuilder;
 import org.example.controler.MessageSender;
 import org.example.controler.db.UserService;
+import org.example.controler.keyboard.KeyboardMarkup;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -20,17 +20,17 @@ import java.util.concurrent.TimeUnit;
 public class TaskService {
     private final UserService userService;
     private final MessageSender messageSender;
-    private final KeyboardFactory keyboardFactory;
+    private final KeyboardMarkup keyboardFactory;
     private KeyboardBuilder keyboardBuilder;
 
-    private final Map<Long, TaskProgressStateDTO> taskStates = new ConcurrentHashMap<>();
-    private final Map<Long, ActiveTaskInfoDTO> activeTaskDTOs = new ConcurrentHashMap<>();
-    private final Map<Long, TaskSettingsDTO> taskSettingsMap = new ConcurrentHashMap<>();
+    private final Map<Long, TaskProgressState> taskStates = new ConcurrentHashMap<>();
+    private final Map<Long, ActiveTaskInfo> activeTaskDTOs = new ConcurrentHashMap<>();
+    private final Map<Long, TaskSettings> taskSettingsMap = new ConcurrentHashMap<>();
     private final TaskGenerator taskGenerator = new TaskGenerator();
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    public TaskService(UserService userService, MessageSender messageSender, KeyboardFactory keyboardFactory, KeyboardBuilder keyboardBuilder) {
+    public TaskService(UserService userService, MessageSender messageSender, KeyboardMarkup keyboardFactory, KeyboardBuilder keyboardBuilder) {
         this.userService = userService;
         this.messageSender = messageSender;
         this.keyboardFactory = keyboardFactory;
@@ -43,10 +43,10 @@ public class TaskService {
      * Проверить прогресс заданий после игры
      */
     public void checkTaskProgressAfterGame(Long chatId) {
-        TaskProgressStateDTO oldState = getTaskProgressStateDTO(chatId);
-        TaskProgressStateDTO newState = fetchCurrentProgressStateDTO(chatId);
+        TaskProgressState oldState = getTaskProgressStateDTO(chatId);
+        TaskProgressState newState = fetchCurrentProgressStateDTO(chatId);
 
-        ActiveTaskInfoDTO activeTaskDTO = activeTaskDTOs.get(chatId);
+        ActiveTaskInfo activeTaskDTO = activeTaskDTOs.get(chatId);
         if (activeTaskDTO != null && !activeTaskDTO.completed) {
             int progress = calculateProgressForTask(activeTaskDTO.taskType, oldState, newState);
 
@@ -71,7 +71,7 @@ public class TaskService {
      * Забрать награду за задание
      */
     public void claimTaskReward(Long chatId) {
-        ActiveTaskInfoDTO taskDTO = activeTaskDTOs.get(chatId);
+        ActiveTaskInfo taskDTO = activeTaskDTOs.get(chatId);
 
         if (taskDTO == null || !taskDTO.completed) {
             messageSender.sendMessage(
@@ -109,8 +109,8 @@ public class TaskService {
     /**
      * Получить или создать настройки DTO
      */
-    public TaskSettingsDTO getOrCreateTaskSettingsDTO(Long chatId) {
-        return taskSettingsMap.computeIfAbsent(chatId, id -> new TaskSettingsDTO(
+    public TaskSettings getOrCreateTaskSettingsDTO(Long chatId) {
+        return taskSettingsMap.computeIfAbsent(chatId, id -> new TaskSettings(
                 chatId,
                 true,
                 "14:00:00",
@@ -123,7 +123,7 @@ public class TaskService {
     /**
      * Обновить настройки
      */
-    public void updateTaskSettingsDTO(TaskSettingsDTO settings) {
+    public void updateTaskSettingsDTO(TaskSettings settings) {
         taskSettingsMap.put(settings.chatId, settings);
     }
 
@@ -131,7 +131,7 @@ public class TaskService {
      * Обновить статус включения заданий
      */
     public void toggleTaskStatus(Long chatId) {
-        TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings settings = getOrCreateTaskSettingsDTO(chatId);
         settings.enabled = !settings.enabled;
         settings.statusInRussian = settings.enabled ? "ВКЛЮЧЕНЫ" : "ВЫКЛЮЧЕНЫ";
         updateTaskSettingsDTO(settings);
@@ -141,7 +141,7 @@ public class TaskService {
      * Обновить время уведомлений
      */
     public void updateNotificationTime(Long chatId, String time) {
-        TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings settings = getOrCreateTaskSettingsDTO(chatId);
         settings.notificationTime = time;
         updateTaskSettingsDTO(settings);
     }
@@ -150,7 +150,7 @@ public class TaskService {
      * Переключить сложность заданий
      */
     public void toggleDifficulty(Long chatId) {
-        TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings settings = getOrCreateTaskSettingsDTO(chatId);
         if (settings.difficulty.equals("EASY")) {
             settings.difficulty = "HARD";
             settings.difficultyInRussian = "СЛОЖНЫЙ";
@@ -176,7 +176,7 @@ public class TaskService {
                 int second = Integer.parseInt(parts[2]);
 
                 if (isValidTime(hour, minute, second)) {
-                    TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
+                    TaskSettings settings = getOrCreateTaskSettingsDTO(chatId);
                     settings.notificationTime = String.format("%02d:%02d:%02d", hour, minute, second);
                     updateTaskSettingsDTO(settings);
                     return true;
@@ -194,15 +194,15 @@ public class TaskService {
     /**
      * Получить состояние прогресса пользователя
      */
-    private TaskProgressStateDTO getTaskProgressStateDTO(Long chatId) {
+    private TaskProgressState getTaskProgressStateDTO(Long chatId) {
         return taskStates.computeIfAbsent(chatId, id -> fetchCurrentProgressStateDTO(id));
     }
 
     /**
      * Получить текущее состояние прогресса из базы данных
      */
-    private TaskProgressStateDTO fetchCurrentProgressStateDTO(Long chatId) {
-        return new TaskProgressStateDTO(
+    private TaskProgressState fetchCurrentProgressStateDTO(Long chatId) {
+        return new TaskProgressState(
                 userService.getBjWins(chatId),
                 userService.getBjLosses(chatId),
                 userService.getBjEarned(chatId),
@@ -219,7 +219,7 @@ public class TaskService {
     /**
      * Рассчитать прогресс для задачи на основе изменений
      */
-    private int calculateProgressForTask(String taskType, TaskProgressStateDTO oldState, TaskProgressStateDTO newState) {
+    private int calculateProgressForTask(String taskType, TaskProgressState oldState, TaskProgressState newState) {
         switch (taskType) {
             case "WIN_BLACKJACK":
                 return newState.bjWins - oldState.bjWins;
@@ -250,7 +250,7 @@ public class TaskService {
     /**
      * Отправить уведомление о выполнении задания
      */
-    private void sendTaskCompletedNotification(Long chatId, ActiveTaskInfoDTO task) {
+    private void sendTaskCompletedNotification(Long chatId, ActiveTaskInfo task) {
         String message = "🎉 *Задание выполнено!*\n\n" +
                 "📝 " + task.description + "\n" +
                 "💰 Награда: " + task.reward + " 🪙\n\n" +
@@ -273,7 +273,7 @@ public class TaskService {
      * Создать новое задание для пользователя
      */
     private void createNewTaskForUser(Long chatId) {
-        TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings settings = getOrCreateTaskSettingsDTO(chatId);
 
         if (!settings.enabled) {
             return;
@@ -281,7 +281,7 @@ public class TaskService {
 
         activeTaskDTOs.remove(chatId);
 
-        ActiveTaskInfoDTO newTaskDTO = taskGenerator.generateTaskDTO(
+        ActiveTaskInfo newTaskDTO = taskGenerator.generateTaskDTO(
                 chatId,
                 settings.difficulty,
                 LocalDate.now()
@@ -296,8 +296,8 @@ public class TaskService {
     /**
      * Отправить задание пользователю
      */
-    private void sendTaskToUser(Long chatId, ActiveTaskInfoDTO taskDTO) {
-        TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
+    private void sendTaskToUser(Long chatId, ActiveTaskInfo taskDTO) {
+        TaskSettings settings = getOrCreateTaskSettingsDTO(chatId);
         String difficultyText = settings.difficulty.equals("EASY") ? "Легкая" : "Сложная";
         String emoji = settings.difficulty.equals("EASY") ? "🟢" : "🔴";
 
@@ -317,7 +317,7 @@ public class TaskService {
             LocalTime now = LocalTime.now();
 
             for (Long chatId : getAllUsersWithTasks()) {
-                TaskSettingsDTO settings = getOrCreateTaskSettingsDTO(chatId);
+                TaskSettings settings = getOrCreateTaskSettingsDTO(chatId);
 
                 if (settings.enabled) {
                     String[] timeParts = settings.notificationTime.split(":");
@@ -327,7 +327,7 @@ public class TaskService {
                         int second = Integer.parseInt(timeParts[2]);
 
                         if (now.getHour() == hour && now.getMinute() == minute && now.getSecond() == second) {
-                            ActiveTaskInfoDTO currentTask = activeTaskDTOs.get(chatId);
+                            ActiveTaskInfo currentTask = activeTaskDTOs.get(chatId);
                             if (currentTask == null || !currentTask.assignedDate.equals(LocalDate.now())) {
                                 createNewTaskForUser(chatId);
                             }
@@ -353,7 +353,7 @@ public class TaskService {
         messageSender.sendMessage(message, String.valueOf(chatId), null);
     }
 
-    public void addTestTask(ActiveTaskInfoDTO task) {
+    public void addTestTask(ActiveTaskInfo task) {
         activeTaskDTOs.put(task.chatId, task);
     }
 

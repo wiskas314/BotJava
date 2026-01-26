@@ -1,8 +1,8 @@
-package org.example.controler.dto;
+package org.example.controler.tasks;
 
 import java.time.LocalDate;
 
-public class ActiveTaskInfoDTO {
+public class ActiveTaskInfo {
     public Long chatId;
     public String taskType;
     public String description;
@@ -13,10 +13,10 @@ public class ActiveTaskInfoDTO {
     public boolean completed;
     public  int progressPercentage;
 
-    public ActiveTaskInfoDTO(Long chatId, String taskType, String description,
-                              int reward, int targetValue,
-                             int currentValue, LocalDate assignedDate,
-                             boolean completed, int progressPercentage) {
+    public ActiveTaskInfo(Long chatId, String taskType, String description,
+                          int reward, int targetValue,
+                          int currentValue, LocalDate assignedDate,
+                          boolean completed, int progressPercentage) {
         this.chatId = chatId;
         this.taskType = taskType;
         this.description = description;

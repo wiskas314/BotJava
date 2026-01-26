@@ -5,13 +5,12 @@ import org.example.controler.BalanceService;
 import org.example.controler.db.UserService;
 import org.example.controler.game.BlackJack;
 import org.example.controler.game.Game;
-import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
 import org.example.controler.game.RideTheBus;
-import org.example.controler.dto.ButtonData;
+import org.example.controler.keyboard.ButtonData;
 import org.example.controler.dto.CallbackData;
 import org.example.controler.game.GameResponse;
-import org.example.controler.dto.KeyboardMarkup;
+import org.example.controler.keyboard.KeyboardMarkup;
 import org.example.controler.tasks.TaskService;
 
 
@@ -26,13 +25,13 @@ import java.util.TimerTask;
 public class CallbackHandler {
     private final Map<String, Game> activeGames;
     private final MessageSender messageSender;
-    private final KeyboardFactory keyboardFactory;
+    private final KeyboardMarkup keyboardFactory;
     private final TaskService taskService;
     private final TaskCallBackHandler taskCallBackHandler;
     private final BalanceService balanceService;
     private final UserService userService;
 
-    public CallbackHandler(Map<String, Game> activeGames, MessageSender messageSender, KeyboardFactory keyboardFactory,
+    public CallbackHandler(Map<String, Game> activeGames, MessageSender messageSender, KeyboardMarkup keyboardFactory,
                            TaskService taskService, UserService userService, BalanceService balanceService,
                            TaskCallBackHandler taskCallBackHandler) {
 

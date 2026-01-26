@@ -1,6 +1,6 @@
 package org.example.controler;
 
-import org.example.controler.dto.KeyboardMarkup;
+import org.example.controler.keyboard.KeyboardMarkup;
 
 /**
  * Интерфейс для отправки сообщений

@@ -1,11 +1,9 @@
 package org.example.controler.handlers;
 
-import org.example.controler.KeyboardBuilder;
-import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
-import org.example.controler.dto.ButtonData;
-import org.example.controler.dto.KeyboardMarkup;
-import org.example.controler.dto.TaskSettingsDTO;
+import org.example.controler.keyboard.ButtonData;
+import org.example.controler.keyboard.KeyboardMarkup;
+import org.example.controler.tasks.TaskSettings;
 import org.example.controler.tasks.TaskService;
 
 
@@ -18,10 +16,10 @@ import java.util.List;
 public class TaskCallBackHandler {
     private final TaskService taskService;
     private final MessageSender messageSender;
-    private final KeyboardFactory keyboardFactory;
+    private final KeyboardMarkup keyboardFactory;
 
     public TaskCallBackHandler(TaskService taskService, MessageSender messageSender,
-                               KeyboardFactory keyboardFactory) {
+                               KeyboardMarkup keyboardFactory) {
         this.taskService = taskService;
         this.messageSender = messageSender;
         this.keyboardFactory = keyboardFactory;
@@ -79,7 +77,7 @@ public class TaskCallBackHandler {
      */
     public void openTaskSettings(String chatIdStr) {
         Long chatId = Long.valueOf(chatIdStr);
-        TaskSettingsDTO settings = taskService.getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings settings = taskService.getOrCreateTaskSettingsDTO(chatId);
 
         String message = "⚙️ Настройка ежедневных заданий:\n\n" +
                 "• Статус: [" + settings.statusInRussian + "]\n" +

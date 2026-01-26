@@ -1,6 +1,6 @@
 package org.example.controler.game;
 
-import org.example.controler.dto.ButtonData;
+import org.example.controler.keyboard.ButtonData;
 
 import java.util.List;
 

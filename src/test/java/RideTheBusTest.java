@@ -1,4 +1,4 @@
-import org.example.controler.dto.ButtonData;
+import org.example.controler.keyboard.ButtonData;
 import org.example.controler.game.GameMessage;
 import org.example.controler.game.GameResponse;
 import org.example.controler.game.RideTheBus;

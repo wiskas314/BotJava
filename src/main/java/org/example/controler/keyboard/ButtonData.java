@@ -1,4 +1,4 @@
-package org.example.controler.dto;
+package org.example.controler.keyboard;
 
 /**
  * класс представляющий данные для создания кнопки в телеграм инлайн-клавиатуре

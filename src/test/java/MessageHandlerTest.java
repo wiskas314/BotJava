@@ -1,7 +1,7 @@
 import org.example.controler.BalanceService;
-import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
-import org.example.controler.dto.KeyboardMarkup;
+import org.example.controler.keyboard.ButtonData;
+import org.example.controler.keyboard.KeyboardMarkup;
 import org.example.controler.dto.MessageData;
 import org.example.controler.handlers.MessageHandler;
 import org.example.controler.handlers.TaskCallBackHandler;
@@ -10,12 +10,14 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 /**
  * Тест обработки классом текста сообщения, отправленного пользователем
  */
 class MessageHandlerTest {
     private TestMessageSender messageSender;
-    private KeyboardFactory keyboardFactory;
+    private KeyboardMarkup keyboardFactory;
     private MessageHandler messageHandler;
     private TaskService taskService;
     private BalanceService balanceService;
@@ -24,16 +26,16 @@ class MessageHandlerTest {
     @BeforeEach
     void setUp() {
         messageSender = new TestMessageSender();
-        keyboardFactory = new KeyboardFactory();
+        keyboardFactory = new KeyboardMarkup();
         messageHandler = new MessageHandler(messageSender, keyboardFactory,taskService,balanceService,taskCallBackHandler);
     }
     /**
      * Тестовая реализация MessageSender для проверки отправки сообщений
      */
     private class TestMessageSender implements MessageSender {
-        String lastMessage;
-        String lastChatId;
-        KeyboardMarkup lastKeyboard;
+        private String lastMessage;
+        private String lastChatId;
+        private KeyboardMarkup lastKeyboard;
 
         @Override
         public void sendMessage(String text, String chatId, KeyboardMarkup keyboard) {
@@ -42,11 +44,18 @@ class MessageHandlerTest {
             this.lastKeyboard = keyboard;
         }
 
-        void reset() {
-            lastMessage = null;
-            lastChatId = null;
-            lastKeyboard = null;
+        public String getLastMessage() {
+            return lastMessage;
         }
+
+        public String getLastChatId() {
+            return lastChatId;
+        }
+
+        public KeyboardMarkup getLastKeyboard() {
+            return lastKeyboard;
+        }
+
     }
 
     /**
@@ -64,11 +73,23 @@ class MessageHandlerTest {
 
         messageHandler.handleMessage(messageData);
 
+        Assertions.assertEquals("Выберите игру:", messageSender.getLastMessage());
+        Assertions.assertNotNull(messageSender.getLastKeyboard());
 
-        Assertions.assertNotNull(messageSender.lastMessage);
         Assertions.assertEquals(chatId, messageSender.lastChatId);
-        Assertions.assertEquals("Выберите игру:", messageSender.lastMessage);
-        Assertions.assertNotNull(messageSender.lastKeyboard);
+        KeyboardMarkup keyboard = messageSender.lastKeyboard;
+
+        List<List<ButtonData>> rows = keyboard.keyboard;
+        Assertions.assertEquals(1, rows.size());
+
+        List<ButtonData> buttons = rows.get(0);
+        Assertions.assertEquals(2, buttons.size());
+
+        Assertions.assertEquals("🎮 Ride the Bus",buttons.get(0).getText());
+        Assertions.assertEquals("ride_the_bus",buttons.get(0).getCallbackData());
+
+        Assertions.assertEquals("🎮 Black Jack",buttons.get(1).getText());
+        Assertions.assertEquals("black_jack",buttons.get(1).getCallbackData());
     }
     /**
      * Тестирует обработку команды /help
@@ -88,9 +109,16 @@ class MessageHandlerTest {
         Assertions.assertNotNull(messageSender.lastMessage);
         Assertions.assertEquals(chatId, messageSender.lastChatId);
         String helpMessage = messageSender.lastMessage;
-        Assertions.assertTrue(helpMessage.contains("/start"));
-        Assertions.assertTrue(helpMessage.contains("/help"));
-        Assertions.assertTrue(helpMessage.contains("/play"));
+        String expectedHelpText = """
+            Вот список доступных команд:
+            /start - Начать общение с ботом
+            /help - Получить список команд
+            /play - Вызывает меню с выбором игр
+            /balance - Показывает баланс пользователя
+            /statistic - Показывает статистику пользователя
+            
+            """;
+        Assertions.assertEquals(helpMessage,expectedHelpText);
         Assertions.assertNull(messageSender.lastKeyboard);
     }
 }

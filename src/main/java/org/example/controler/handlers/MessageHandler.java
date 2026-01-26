@@ -2,10 +2,9 @@ package org.example.controler.handlers;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.example.controler.BalanceService;
-import org.example.controler.KeyboardFactory;
 import org.example.controler.MessageSender;
-import org.example.controler.dto.ButtonData;
-import org.example.controler.dto.KeyboardMarkup;
+import org.example.controler.keyboard.ButtonData;
+import org.example.controler.keyboard.KeyboardMarkup;
 import org.example.controler.dto.MessageData;
 import org.example.controler.tasks.TaskService;
 
@@ -18,12 +17,12 @@ import java.util.List;
  */
 public class MessageHandler {
     private final MessageSender messageSender;
-    private final KeyboardFactory keyboardFactory;
+    private final KeyboardMarkup keyboardFactory;
     private final TaskService taskService;
     private final BalanceService balanceService;
     private final TaskCallBackHandler taskCallBackHandler;
 
-    public MessageHandler(MessageSender messageSender, KeyboardFactory keyboardFactory, TaskService taskService,
+    public MessageHandler(MessageSender messageSender, KeyboardMarkup keyboardFactory, TaskService taskService,
                           BalanceService balanceService, TaskCallBackHandler taskCallBackHandler){
         this.messageSender =  messageSender;
         this.keyboardFactory = keyboardFactory;

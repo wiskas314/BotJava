@@ -1,14 +1,15 @@
 package org.example.controler;
 
 import org.apache.commons.lang3.math.NumberUtils;
-import org.example.controler.dto.ButtonData;
+import org.example.controler.keyboard.ButtonData;
 import org.example.controler.dto.CallbackData;
-import org.example.controler.dto.KeyboardMarkup;
+import org.example.controler.keyboard.KeyboardMarkup;
 import org.example.controler.dto.MessageData;
 import org.example.controler.game.Game;
 import org.example.controler.handlers.CallbackHandler;
 import org.example.controler.handlers.MessageHandler;
 import org.example.controler.handlers.TaskCallBackHandler;
+import org.example.controler.keyboard.KeyboardBuilder;
 import org.example.controler.tasks.TaskService;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -41,7 +42,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         this.botUsername = botUsername;
         Map<String, Game> activeGames = new HashMap<>();
         userService = new UserService();
-        KeyboardFactory keyboardFactory = new KeyboardFactory();
+        KeyboardMarkup keyboardFactory = new KeyboardMarkup();
         KeyboardBuilder keyboardBuilder = new KeyboardBuilder();
 
         TaskService taskService = new TaskService(userService, this, keyboardFactory, keyboardBuilder);
@@ -144,8 +145,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         try {
             execute(message);
         } catch (TelegramApiException e) {
-            System.err.println("Не удалось отправить сообщение в чат " + message.getChatId());
-            System.err.println("Ошибка Telegram API: " + e.getMessage());
+            System.err.println("Не удалось отправить сообщение в чат " + e.getMessage());
             e.printStackTrace();
         }
 

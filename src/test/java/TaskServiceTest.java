@@ -1,14 +1,13 @@
 import org.example.controler.BalanceService;
-import org.example.controler.KeyboardBuilder;
-import org.example.controler.KeyboardFactory;
+import org.example.controler.keyboard.KeyboardBuilder;
 import org.example.controler.MessageSender;
 import org.example.controler.db.UserService;
-import org.example.controler.dto.KeyboardMarkup;
-import org.example.controler.dto.TaskSettingsDTO;
+import org.example.controler.keyboard.KeyboardMarkup;
+import org.example.controler.tasks.TaskSettings;
 import org.example.controler.handlers.MessageHandler;
 import org.example.controler.handlers.TaskCallBackHandler;
 import org.example.controler.tasks.TaskService;
-import org.example.controler.dto.ActiveTaskInfoDTO;
+import org.example.controler.tasks.ActiveTaskInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,7 +25,7 @@ class TaskServiceTest {
     private TaskService taskService;
     private UserService userService;
     private TestMessageSender messageSender;
-    private KeyboardFactory keyboardFactory;
+    private KeyboardMarkup keyboardFactory;
     private KeyboardBuilder keyboardBuilder;
     private BalanceService balanceService;
     private TaskCallBackHandler taskCallBackHandler;
@@ -39,7 +38,7 @@ class TaskServiceTest {
     void setUp() {
         messageSender = new TestMessageSender();
         userService = new UserService();
-        keyboardFactory = new KeyboardFactory();
+        keyboardFactory = new KeyboardMarkup();
         messageHandler = new MessageHandler(messageSender, keyboardFactory,taskService,balanceService,taskCallBackHandler);
         keyboardBuilder = new KeyboardBuilder();
         taskService = new TaskService(userService, messageSender, keyboardFactory, keyboardBuilder);
@@ -71,7 +70,7 @@ class TaskServiceTest {
      */
     @Test
     void testTaskCompletionWhenTargetReacged() throws InterruptedException{
-        ActiveTaskInfoDTO task = new ActiveTaskInfoDTO(
+        ActiveTaskInfo task = new ActiveTaskInfo(
                 TEST_CHAT_ID,
                 "WIN_BLACKJACK",
                 "Выиграть в Black Jack 3 раза",
@@ -116,7 +115,7 @@ class TaskServiceTest {
         Long chatId = TEST_CHAT_ID;
 
 
-        TaskSettingsDTO settings = taskService.getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings settings = taskService.getOrCreateTaskSettingsDTO(chatId);
 
 
         Assertions.assertTrue(settings.enabled);
@@ -127,37 +126,37 @@ class TaskServiceTest {
 
 
         taskService.toggleTaskStatus(chatId);
-        TaskSettingsDTO afterToggle = taskService.getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings afterToggle = taskService.getOrCreateTaskSettingsDTO(chatId);
         Assertions.assertFalse(afterToggle.enabled);
         Assertions.assertEquals("ВЫКЛЮЧЕНЫ", afterToggle.statusInRussian);
 
 
         taskService.toggleTaskStatus(chatId);
-        TaskSettingsDTO afterSecondToggle = taskService.getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings afterSecondToggle = taskService.getOrCreateTaskSettingsDTO(chatId);
         Assertions.assertTrue(afterSecondToggle.enabled);
         Assertions.assertEquals("ВКЛЮЧЕНЫ", afterSecondToggle.statusInRussian);
 
 
         taskService.updateNotificationTime(chatId, "15:30:00");
-        TaskSettingsDTO afterTimeUpdate = taskService.getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings afterTimeUpdate = taskService.getOrCreateTaskSettingsDTO(chatId);
         Assertions.assertEquals("15:30:00", afterTimeUpdate.notificationTime);
 
 
         taskService.toggleDifficulty(chatId);
-        TaskSettingsDTO afterDifficultyToggle = taskService.getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings afterDifficultyToggle = taskService.getOrCreateTaskSettingsDTO(chatId);
         Assertions.assertEquals("HARD", afterDifficultyToggle.difficulty);
         Assertions.assertEquals("СЛОЖНЫЙ", afterDifficultyToggle.difficultyInRussian);
 
 
         taskService.toggleDifficulty(chatId);
-        TaskSettingsDTO afterDifficultyToggleBack = taskService.getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings afterDifficultyToggleBack = taskService.getOrCreateTaskSettingsDTO(chatId);
         Assertions.assertEquals("EASY", afterDifficultyToggleBack.difficulty);
         Assertions.assertEquals("ЛЕГКИЙ", afterDifficultyToggleBack.difficultyInRussian);
 
         boolean result = taskService.handleTimeInput(chatId, "16:45:30");
         Assertions.assertTrue(result);
 
-        TaskSettingsDTO afterHandleTime = taskService.getOrCreateTaskSettingsDTO(chatId);
+        TaskSettings afterHandleTime = taskService.getOrCreateTaskSettingsDTO(chatId);
         Assertions.assertEquals("16:45:30", afterHandleTime.notificationTime);
     }
 
@@ -166,7 +165,7 @@ class TaskServiceTest {
      */
     @Test
     void testCannotClaimRewardWithPartialCompletion() throws InterruptedException{
-        ActiveTaskInfoDTO task = new ActiveTaskInfoDTO(
+        ActiveTaskInfo task = new ActiveTaskInfo(
                 TEST_CHAT_ID,
                 "WIN_BLACKJACK",
                 "Выиграть в Black Jack 3 раза",

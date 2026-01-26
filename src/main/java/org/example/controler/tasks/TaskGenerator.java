@@ -1,6 +1,5 @@
 package org.example.controler.tasks;
 
-import org.example.controler.dto.ActiveTaskInfoDTO;
 import java.time.LocalDate;
 import java.util.Random;
 
@@ -10,7 +9,7 @@ public class TaskGenerator {
     /**
      * Выбор задач
      */
-    public ActiveTaskInfoDTO generateTaskDTO(Long chatId, String difficulty, LocalDate date) {
+    public ActiveTaskInfo generateTaskDTO(Long chatId, String difficulty, LocalDate date) {
         boolean isHard = "HARD".equals(difficulty);
 
         int taskIndex = random.nextInt(6);
@@ -36,11 +35,11 @@ public class TaskGenerator {
     /**
      * Генерирует задачу на победы в BJ
      */
-    private ActiveTaskInfoDTO generateBlackjackWinTaskDTO(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfo generateBlackjackWinTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 3 : 2;
         int reward = isHard ? 150 : 75;
 
-        return new ActiveTaskInfoDTO(
+        return new ActiveTaskInfo(
                 chatId,
                 "WIN_BLACKJACK",
                 "Выиграть " + target + " игры в Blackjack",
@@ -56,11 +55,11 @@ public class TaskGenerator {
     /**
      * Генерирует задачу в которой нужно сыграть в BJ
      */
-    private ActiveTaskInfoDTO generateBlackjackPlayTaskDTO(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfo generateBlackjackPlayTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 5 : 3;
         int reward = isHard ? 120 : 60;
 
-        return new ActiveTaskInfoDTO(
+        return new ActiveTaskInfo(
                 chatId,
                 "PLAY_BLACKJACK",
                 "Сыграть " + target + " игр в Blackjack",
@@ -76,11 +75,11 @@ public class TaskGenerator {
     /**
      * Генерирует задачу в которой нужно заработать в BJ
      */
-    private ActiveTaskInfoDTO generateBlackjackEarnTaskDTO(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfo generateBlackjackEarnTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 500 : 250;
         int reward = isHard ? 200 : 100;
 
-        return new ActiveTaskInfoDTO(
+        return new ActiveTaskInfo(
                 chatId,
                 "EARN_BLACKJACK",
                 "Заработать " + target + " кредитов в Blackjack",
@@ -96,11 +95,11 @@ public class TaskGenerator {
     /**
      * Генерирует задачу в которой нужно выиграть в RTB
      */
-    private ActiveTaskInfoDTO generateRideTheBusWinTaskDTO(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfo generateRideTheBusWinTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 2 : 1;
         int reward = isHard ? 180 : 90;
 
-        return new ActiveTaskInfoDTO(
+        return new ActiveTaskInfo(
                 chatId,
                 "WIN_RIDE_THE_BUS",
                 "Выиграть " + target + " игры в Ride the Bus",
@@ -116,11 +115,11 @@ public class TaskGenerator {
     /**
      * Генерирует задачу сыграть в RTB
      */
-    private ActiveTaskInfoDTO generateRideTheBusPlayTaskDTO(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfo generateRideTheBusPlayTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 4 : 2;
         int reward = isHard ? 140 : 70;
 
-        return new ActiveTaskInfoDTO(
+        return new ActiveTaskInfo(
                 chatId,
                 "PLAY_RIDE_THE_BUS",
                 "Сыграть " + target + " игр в Ride the Bus",
@@ -136,11 +135,11 @@ public class TaskGenerator {
     /**
      * Генерирует задачу на заработок
      */
-    private ActiveTaskInfoDTO generateEarnAnyTaskDTO(Long chatId, boolean isHard, LocalDate date) {
+    private ActiveTaskInfo generateEarnAnyTaskDTO(Long chatId, boolean isHard, LocalDate date) {
         int target = isHard ? 750 : 400;
         int reward = isHard ? 250 : 125;
 
-        return new ActiveTaskInfoDTO(
+        return new ActiveTaskInfo(
                 chatId,
                 "EARN_ANY",
                 "Заработать " + target + " кредитов в любой игре",

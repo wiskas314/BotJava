@@ -1,9 +1,8 @@
 package org.example.controler;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.example.controler.db.UserService;
-import org.example.controler.dto.KeyboardMarkup;
-import org.example.controler.game.GameMessage;
-import org.example.controler.game.GameResponse;
+import org.example.controler.keyboard.KeyboardBuilder;
+import org.example.controler.keyboard.KeyboardMarkup;
 
 /**
  * Сервис для работы с балансом пользователя
@@ -12,10 +11,10 @@ public class BalanceService {
     private UserService userService;
     private MessageSender messageSender;
     private KeyboardBuilder keyboardBuilder;
-    private KeyboardFactory keyboardFactory;
+    private KeyboardMarkup keyboardFactory;
 
     public BalanceService(UserService userService, MessageSender messageSender, KeyboardBuilder keyboardBuilder,
-                          KeyboardFactory keyboardFactory) {
+                          KeyboardMarkup keyboardFactory) {
         this.userService = userService;
         this.messageSender = messageSender;
         this.keyboardBuilder = keyboardBuilder;

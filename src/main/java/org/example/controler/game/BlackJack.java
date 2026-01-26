@@ -1,9 +1,7 @@
 package org.example.controler.game;
 
-import org.example.controler.KeyboardBuilder;
-import org.example.controler.KeyboardFactory;
-import org.example.controler.MessageSender;
-import org.example.controler.dto.ButtonData;
+import org.example.controler.keyboard.KeyboardBuilder;
+import org.example.controler.keyboard.ButtonData;
 import org.example.controler.game.cards.Card;
 import org.example.controler.game.cards.Deck;
 import org.example.controler.db.UserService;
@@ -413,23 +411,6 @@ public class BlackJack implements Game {
                     new GameMessage(chatId, "❌ Неверный формат ставки", null),
                     false
             );
-        }
-    }
-
-    /**
-     * Определение текстового результата игры (для отображения в sendGameState)
-     */
-    private String determineWinner() {
-        if (playerScore > 21) {
-            return "Вы **перебрали**! Проигрыш. 😞";
-        } else if (dealerScore > 21) {
-            return "Дилер **перебрал**! Вы выиграли! 🎉";
-        } else if (playerScore > dealerScore) {
-            return "Вы набрали **больше очков**! Победа! 🎉";
-        } else if (dealerScore > playerScore) {
-            return "Дилер набрал **больше очков**! Проигрыш. 😞";
-        } else {
-            return "**Ничья**! 🤝 (ставка возвращается)";
         }
     }
 

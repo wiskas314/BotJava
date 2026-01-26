@@ -1,13 +1,10 @@
-import org.example.controler.KeyboardFactory;
-import org.example.controler.dto.ButtonData;
-import org.example.controler.dto.KeyboardMarkup;
+import org.example.controler.keyboard.ButtonData;
+import org.example.controler.keyboard.KeyboardMarkup;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.junit.jupiter.api.Assertions.*;
 
 /**
  * тестовый класс содержит тесты для метод создания клавиатур
@@ -16,7 +13,7 @@ class KeyBoardFactoryTest {
 
     @Test
     void testCreateKeyboard() {
-        KeyboardFactory keyboardFactory = new KeyboardFactory();
+        KeyboardMarkup keyboardFactory = new KeyboardMarkup();
 
         List<List<ButtonData>> buttonRows = new ArrayList<>();
 
@@ -55,7 +52,7 @@ class KeyBoardFactoryTest {
      */
     @Test
     void testCreateGameSelectionKeyboard() {
-        KeyboardFactory keyboardFactory = new KeyboardFactory();
+        KeyboardMarkup keyboardFactory = new KeyboardMarkup();
 
         List<List<ButtonData>> buttonRows = new ArrayList<>();
         List<ButtonData> row = new ArrayList<>();

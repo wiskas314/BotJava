@@ -1,7 +1,7 @@
 package org.example.controler.game;
 
 /**
- * Интерфейс для Black Jack и Ride the Bus
+ * Интерфейс для игр
  */
 public interface Game {
 

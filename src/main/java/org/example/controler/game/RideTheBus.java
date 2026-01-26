@@ -1,13 +1,11 @@
 package org.example.controler.game;
 
 
-import org.example.controler.KeyboardBuilder;
-import org.example.controler.KeyboardFactory;
-import org.example.controler.MessageSender;
+import org.example.controler.keyboard.KeyboardBuilder;
 import org.example.controler.game.cards.Card;
 import org.example.controler.game.cards.Deck;
 import org.example.controler.db.UserService;
-import org.example.controler.dto.ButtonData;
+import org.example.controler.keyboard.ButtonData;
 
 import java.util.ArrayList;
 import java.util.List;
